@@ -1,0 +1,15 @@
+version = 1
+
+[[packages]]
+name = "lcl"
+version = "0.1.0"
+source = "path+../.."
+checksum = "68cdb41972b03470064be2f6cc4d34be584edc33e16033f1ea16e5af81658304"
+dependencies = []
+
+[[packages]]
+name = "lcl_hello_example"
+version = "0.1.0"
+source = "path+."
+checksum = "d9d0be613cf7e1192442b6dd899a1be1334d1222bbc88fcc03c3428d886f031a"
+dependencies = ["lcl"]

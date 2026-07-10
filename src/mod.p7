@@ -1,0 +1,7 @@
+pub fn hello(name: string) -> string {
+    f"Hello, {name} from p7-lcl"
+}
+
+pub fn binding_version() -> int {
+    1
+}

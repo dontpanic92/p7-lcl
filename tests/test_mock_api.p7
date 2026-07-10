@@ -1,0 +1,12 @@
+import test.test;
+import lcl;
+
+@test(expected_type = "string", expected_value = "Hello, Protosept from p7-lcl")
+fn test_hello() -> string {
+    lcl.hello("Protosept")
+}
+
+@test(expected_type = "int", expected_value = "1")
+fn test_binding_version() -> int {
+    lcl.binding_version()
+}
