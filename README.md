@@ -2,11 +2,15 @@
 
 Protosept bindings for the Lazarus Component Library (LCL).
 
-The first native vertical slice provides:
+The native binding currently provides:
 
 - LCL application initialization.
 - Owning `TForm` foreign values backed by a generation-safe Pascal object table.
-- Form creation, caption access, display, and deterministic release.
+- Forms with caption, bounds, show, close, and deterministic release.
+- `TButton`, `TLabel`, and `TEdit` controls with common text, bounds, and
+  enabled operations.
+- Persistent rooted `OnClick` and `OnChange` callbacks, including re-entrant
+  calls from a Protosept closure back into LCL.
 - `examples/hello` is a separate executable package with a path dependency on
   the root library.
 - Both packages have Protosept tests that exercise the native extension.
@@ -17,14 +21,29 @@ The current Protosept API is:
 lcl.initialize();
 let form = lcl.new_form();
 lcl.set_form_caption(form, "Hello");
+lcl.set_form_bounds(form, 120, 120, 420, 220);
+let label = lcl.new_label(form);
+let edit = lcl.new_edit(form);
+let button = lcl.new_button(form);
+lcl.button_on_click(button, () => {
+    lcl.set_label_caption(label, lcl.edit_text(edit));
+});
 lcl.show_form(form);
 lcl.run(); // blocks until the form is closed
+lcl.free_button(button);
+lcl.free_edit(edit);
+lcl.free_label(label);
 lcl.free_form(form);
 ```
 
-`box<lcl.Form>` owns an unowned `TForm`. The Pascal object table validates the
-slot generation on every call, so using a released form produces a native
-runtime trap instead of dereferencing stale memory.
+Each current `box<lcl.*>` value owns an unowned LCL object. Controls are
+visually parented to their form but remain explicitly owned by Protosept.
+Event setters root closures until the event is replaced or the control is
+released. `button_clear_on_click` and `edit_clear_on_change` deterministically
+break subscriptions, including callbacks that capture their own controls. The
+Pascal object table validates slot generations on every call,
+so using a released object produces a native runtime trap instead of
+dereferencing stale memory.
 
 The `protosept` directory is intentionally untracked and points to the local
 Protosept checkout used to build the CLI.

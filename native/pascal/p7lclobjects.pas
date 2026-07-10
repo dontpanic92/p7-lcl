@@ -6,6 +6,7 @@ interface
 
 function AddObject(Instance: TObject): Int64;
 function FindObject(Handle: Int64; ExpectedClass: TClass): TObject;
+function FindObjectOrNil(Handle: Int64; ExpectedClass: TClass): TObject;
 procedure ReleaseObject(Handle: Int64);
 
 implementation
@@ -75,6 +76,19 @@ begin
       'LCL object type mismatch: expected %s, got %s',
       [ExpectedClass.ClassName, Result.ClassName]
     );
+end;
+
+function FindObjectOrNil(Handle: Int64; ExpectedClass: TClass): TObject;
+var
+  Index, Generation: LongWord;
+begin
+  if not DecodeHandle(Handle, Index, Generation) or
+     (Index >= LongWord(Length(ObjectSlots))) or
+     (ObjectSlots[Index].Generation <> Generation) or
+     (ObjectSlots[Index].Instance = nil) or
+     not ObjectSlots[Index].Instance.InheritsFrom(ExpectedClass) then
+    Exit(nil);
+  Result := ObjectSlots[Index].Instance;
 end;
 
 procedure ReleaseObject(Handle: Int64);

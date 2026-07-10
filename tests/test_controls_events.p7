@@ -1,0 +1,101 @@
+import test.test;
+import lcl;
+
+@test(expected_type = "string", expected_value = "clicked")
+fn test_button_click_invokes_rooted_callback() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    let button = lcl.new_button(form);
+    lcl.set_label_caption(label, "waiting");
+    lcl.button_on_click(button, () => {
+        lcl.set_label_caption(label, "clicked");
+    });
+    lcl.click_button(button);
+    let result = lcl.label_caption(label);
+    lcl.free_button(button);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "changed")
+fn test_edit_change_reenters_lcl() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    let edit = lcl.new_edit(form);
+    lcl.edit_on_change(edit, () => {
+        lcl.set_label_caption(label, "changed");
+    });
+    lcl.set_edit_text(edit, "new text");
+    let result = lcl.label_caption(label);
+    lcl.free_edit(edit);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "replacement")
+fn test_replacing_event_releases_old_callback() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    let button = lcl.new_button(form);
+    lcl.button_on_click(button, () => {
+        lcl.set_label_caption(label, "old");
+    });
+    lcl.button_on_click(button, () => {
+        lcl.set_label_caption(label, "replacement");
+    });
+    lcl.click_button(button);
+    let result = lcl.label_caption(label);
+    lcl.free_button(button);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "waiting")
+fn test_clearing_event_unregisters_callback() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    let button = lcl.new_button(form);
+    lcl.set_label_caption(label, "waiting");
+    lcl.button_on_click(button, () => {
+        lcl.set_label_caption(label, "clicked");
+    });
+    lcl.button_clear_on_click(button);
+    lcl.click_button(button);
+    let result = lcl.label_caption(label);
+    lcl.free_button(button);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(runtime_error = "Protosept event callback failed")
+fn test_synchronous_event_callback_error_is_propagated() {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let dead_label = lcl.new_label(form);
+    let button = lcl.new_button(form);
+    lcl.free_label(dead_label);
+    lcl.button_on_click(button, () => {
+        let ignored = lcl.label_caption(dead_label);
+    });
+    lcl.click_button(button);
+    lcl.free_button(button);
+    lcl.free_form(form);
+}
+
+@test(runtime_error = "stale LCL object handle")
+fn test_released_button_is_rejected() {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let button = lcl.new_button(form);
+    lcl.free_button(button);
+    lcl.click_button(button);
+    lcl.free_form(form);
+}

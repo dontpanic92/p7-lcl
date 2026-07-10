@@ -8,11 +8,38 @@
 pub proto Form {
 }
 
+@foreign(
+    type_tag="lcl.TButton",
+    dispatcher="p7lcl.button.unused",
+    finalizer="p7lcl.button.finalize",
+)
+pub proto Button {
+}
+
+@foreign(
+    type_tag="lcl.TLabel",
+    dispatcher="p7lcl.label.unused",
+    finalizer="p7lcl.label.finalize",
+)
+pub proto Label {
+}
+
+@foreign(
+    type_tag="lcl.TEdit",
+    dispatcher="p7lcl.edit.unused",
+    finalizer="p7lcl.edit.finalize",
+)
+pub proto Edit {
+}
+
 @intrinsic(name="p7lcl.application.initialize")
 fn native_initialize();
 
 @intrinsic(name="p7lcl.application.run")
 fn native_run();
+
+@intrinsic(name="p7lcl.application.terminate")
+fn native_terminate();
 
 @intrinsic(name="p7lcl.form.create")
 fn native_create_form() -> box<Form>;
@@ -23,11 +50,77 @@ fn native_set_form_caption(form: box<Form>, caption: string);
 @intrinsic(name="p7lcl.form.caption")
 fn native_form_caption(form: box<Form>) -> string;
 
+@intrinsic(name="p7lcl.form.set_bounds")
+fn native_set_form_bounds(form: box<Form>, left: int, top: int, width: int, height: int);
+
 @intrinsic(name="p7lcl.form.show")
 fn native_show_form(form: box<Form>);
 
+@intrinsic(name="p7lcl.form.close")
+fn native_close_form(form: box<Form>);
+
 @intrinsic(name="p7lcl.form.free")
 fn native_free_form(form: box<Form>);
+
+@intrinsic(name="p7lcl.button.create")
+fn native_create_button(form: box<Form>) -> box<Button>;
+
+@intrinsic(name="p7lcl.button.set_caption")
+fn native_set_button_caption(button: box<Button>, caption: string);
+
+@intrinsic(name="p7lcl.button.set_bounds")
+fn native_set_button_bounds(button: box<Button>, left: int, top: int, width: int, height: int);
+
+@intrinsic(name="p7lcl.button.set_enabled")
+fn native_set_button_enabled(button: box<Button>, enabled: bool);
+
+@intrinsic(name="p7lcl.button.on_click")
+fn native_button_on_click(button: box<Button>, callback: fn());
+
+@intrinsic(name="p7lcl.button.clear_on_click")
+fn native_button_clear_on_click(button: box<Button>);
+
+@intrinsic(name="p7lcl.button.click")
+fn native_click_button(button: box<Button>);
+
+@intrinsic(name="p7lcl.button.free")
+fn native_free_button(button: box<Button>);
+
+@intrinsic(name="p7lcl.label.create")
+fn native_create_label(form: box<Form>) -> box<Label>;
+
+@intrinsic(name="p7lcl.label.set_caption")
+fn native_set_label_caption(label: box<Label>, caption: string);
+
+@intrinsic(name="p7lcl.label.caption")
+fn native_label_caption(label: box<Label>) -> string;
+
+@intrinsic(name="p7lcl.label.set_bounds")
+fn native_set_label_bounds(label: box<Label>, left: int, top: int, width: int, height: int);
+
+@intrinsic(name="p7lcl.label.free")
+fn native_free_label(label: box<Label>);
+
+@intrinsic(name="p7lcl.edit.create")
+fn native_create_edit(form: box<Form>) -> box<Edit>;
+
+@intrinsic(name="p7lcl.edit.set_text")
+fn native_set_edit_text(edit: box<Edit>, text: string);
+
+@intrinsic(name="p7lcl.edit.text")
+fn native_edit_text(edit: box<Edit>) -> string;
+
+@intrinsic(name="p7lcl.edit.set_bounds")
+fn native_set_edit_bounds(edit: box<Edit>, left: int, top: int, width: int, height: int);
+
+@intrinsic(name="p7lcl.edit.on_change")
+fn native_edit_on_change(edit: box<Edit>, callback: fn());
+
+@intrinsic(name="p7lcl.edit.clear_on_change")
+fn native_edit_clear_on_change(edit: box<Edit>);
+
+@intrinsic(name="p7lcl.edit.free")
+fn native_free_edit(edit: box<Edit>);
 
 pub fn initialize() {
     native_initialize()
@@ -35,6 +128,10 @@ pub fn initialize() {
 
 pub fn run() {
     native_run()
+}
+
+pub fn terminate() {
+    native_terminate()
 }
 
 pub fn new_form() -> box<Form> {
@@ -49,10 +146,98 @@ pub fn form_caption(form: box<Form>) -> string {
     native_form_caption(form)
 }
 
+pub fn set_form_bounds(form: box<Form>, left: int, top: int, width: int, height: int) {
+    native_set_form_bounds(form, left, top, width, height)
+}
+
 pub fn show_form(form: box<Form>) {
     native_show_form(form)
 }
 
+pub fn close_form(form: box<Form>) {
+    native_close_form(form)
+}
+
 pub fn free_form(form: box<Form>) {
     native_free_form(form)
+}
+
+pub fn new_button(form: box<Form>) -> box<Button> {
+    native_create_button(form)
+}
+
+pub fn set_button_caption(button: box<Button>, caption: string) {
+    native_set_button_caption(button, caption)
+}
+
+pub fn set_button_bounds(button: box<Button>, left: int, top: int, width: int, height: int) {
+    native_set_button_bounds(button, left, top, width, height)
+}
+
+pub fn set_button_enabled(button: box<Button>, enabled: bool) {
+    native_set_button_enabled(button, enabled)
+}
+
+pub fn button_on_click(button: box<Button>, callback: fn()) {
+    native_button_on_click(button, callback)
+}
+
+pub fn button_clear_on_click(button: box<Button>) {
+    native_button_clear_on_click(button)
+}
+
+pub fn click_button(button: box<Button>) {
+    native_click_button(button)
+}
+
+pub fn free_button(button: box<Button>) {
+    native_free_button(button)
+}
+
+pub fn new_label(form: box<Form>) -> box<Label> {
+    native_create_label(form)
+}
+
+pub fn set_label_caption(label: box<Label>, caption: string) {
+    native_set_label_caption(label, caption)
+}
+
+pub fn label_caption(label: box<Label>) -> string {
+    native_label_caption(label)
+}
+
+pub fn set_label_bounds(label: box<Label>, left: int, top: int, width: int, height: int) {
+    native_set_label_bounds(label, left, top, width, height)
+}
+
+pub fn free_label(label: box<Label>) {
+    native_free_label(label)
+}
+
+pub fn new_edit(form: box<Form>) -> box<Edit> {
+    native_create_edit(form)
+}
+
+pub fn set_edit_text(edit: box<Edit>, text: string) {
+    native_set_edit_text(edit, text)
+}
+
+pub fn edit_text(edit: box<Edit>) -> string {
+    native_edit_text(edit)
+}
+
+pub fn set_edit_bounds(edit: box<Edit>, left: int, top: int, width: int, height: int) {
+    native_set_edit_bounds(edit, left, top, width, height)
+}
+
+pub fn edit_on_change(edit: box<Edit>, callback: fn()) {
+    native_edit_on_change(edit, callback)
+}
+
+pub fn edit_clear_on_change(edit: box<Edit>) {
+    native_edit_clear_on_change(edit)
+}
+
+pub fn free_edit(edit: box<Edit>) {
+    native_free_edit(edit)
 }
