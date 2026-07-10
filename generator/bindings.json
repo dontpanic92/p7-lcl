@@ -1,0 +1,81 @@
+{
+  "foreign": {
+    "p7_name": "Form",
+    "type_tag": "lcl.TForm",
+    "dispatcher": "p7lcl.form.unused",
+    "finalizer": "p7lcl.form.finalize"
+  },
+  "functions": [
+    {
+      "intrinsic": "p7lcl.application.initialize",
+      "callback": "ApplicationInitialize",
+      "native_name": "native_initialize",
+      "public_name": "initialize",
+      "params": []
+    },
+    {
+      "intrinsic": "p7lcl.application.run",
+      "callback": "ApplicationRun",
+      "native_name": "native_run",
+      "public_name": "run",
+      "params": []
+    },
+    {
+      "intrinsic": "p7lcl.form.create",
+      "callback": "FormCreate",
+      "native_name": "native_create_form",
+      "public_name": "new_form",
+      "params": [],
+      "result_p7": "box<Form>",
+      "result_native": "foreign"
+    },
+    {
+      "intrinsic": "p7lcl.form.set_caption",
+      "callback": "FormSetCaption",
+      "native_name": "native_set_form_caption",
+      "public_name": "set_form_caption",
+      "params": [
+        {"name": "form", "p7": "box<Form>", "native": "foreign"},
+        {"name": "caption", "p7": "string", "native": "string"}
+      ]
+    },
+    {
+      "intrinsic": "p7lcl.form.caption",
+      "callback": "FormCaption",
+      "native_name": "native_form_caption",
+      "public_name": "form_caption",
+      "params": [
+        {"name": "form", "p7": "box<Form>", "native": "foreign"}
+      ],
+      "result_p7": "string",
+      "result_native": "string"
+    },
+    {
+      "intrinsic": "p7lcl.form.show",
+      "callback": "FormShow",
+      "native_name": "native_show_form",
+      "public_name": "show_form",
+      "params": [
+        {"name": "form", "p7": "box<Form>", "native": "foreign"}
+      ]
+    },
+    {
+      "intrinsic": "p7lcl.form.free",
+      "callback": "FormFree",
+      "native_name": "native_free_form",
+      "public_name": "free_form",
+      "params": [
+        {"name": "form", "p7": "box<Form>", "native": "foreign"}
+      ]
+    },
+    {
+      "intrinsic": "p7lcl.form.finalize",
+      "callback": "FormFinalize",
+      "params": [
+        {"name": "handle", "native": "int"},
+        {"name": "type_tag", "native": "string"}
+      ],
+      "expose_p7": false
+    }
+  ]
+}

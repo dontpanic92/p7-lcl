@@ -2,3 +2,6 @@
 name = "lcl"
 version = "0.1.0"
 kind = "library"
+
+[native]
+extensions = ["native/lib/libp7lcl.dylib"]

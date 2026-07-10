@@ -1,8 +1,14 @@
 import lcl;
 
 fn main() -> int {
-    if lcl.hello("Protosept") == "Hello, Protosept from p7-lcl"
-        && lcl.binding_version() == 1 {
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.set_form_caption(form, "Hello from Protosept");
+    let correct = lcl.form_caption(form) == "Hello from Protosept";
+    lcl.show_form(form);
+    lcl.run();
+    lcl.free_form(form);
+    if correct {
         0
     } else {
         1

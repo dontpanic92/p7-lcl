@@ -4,12 +4,12 @@ version = 1
 name = "lcl"
 version = "0.1.0"
 source = "path+../.."
-checksum = "68cdb41972b03470064be2f6cc4d34be584edc33e16033f1ea16e5af81658304"
+checksum = "ce7b881c146065dfdfd67eb9f3fdd2d06e362b16699ade0af624382225288d1c"
 dependencies = []
 
 [[packages]]
 name = "lcl_hello_example"
 version = "0.1.0"
 source = "path+."
-checksum = "d9d0be613cf7e1192442b6dd899a1be1334d1222bbc88fcc03c3428d886f031a"
+checksum = "d3a37a6623097e7d3e6b6992988b3e910f3cb78b81495996715381ef81ced962"
 dependencies = ["lcl"]

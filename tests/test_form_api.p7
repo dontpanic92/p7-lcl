@@ -1,0 +1,28 @@
+import test.test;
+import lcl;
+
+@test(expected_type = "string", expected_value = "Protosept LCL form")
+fn test_form_caption_round_trip() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.set_form_caption(form, "Protosept LCL form");
+    let caption = lcl.form_caption(form);
+    lcl.free_form(form);
+    caption
+}
+
+@test(runtime_error = "stale LCL object handle")
+fn test_released_form_is_rejected() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.free_form(form);
+    lcl.form_caption(form)
+}
+
+@test(expected_type = "string", expected_value = "Unload cleanup")
+fn test_unreleased_form_is_cleaned_up_on_extension_unload() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.set_form_caption(form, "Unload cleanup");
+    lcl.form_caption(form)
+}

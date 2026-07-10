@@ -1,0 +1,12 @@
+import test.test;
+import lcl;
+
+@test(expected_type = "string", expected_value = "Example form")
+fn test_library_form_call() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.set_form_caption(form, "Example form");
+    let caption = lcl.form_caption(form);
+    lcl.free_form(form);
+    caption
+}
