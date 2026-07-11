@@ -2,7 +2,7 @@ import test.test;
 import lcl;
 
 @test(expected_type = "string", expected_value = "sync")
-fn test_application_invoke_runs_on_ui_thread() -> string {
+fn test_application_invoke_runs_synchronously() -> string {
     lcl.initialize();
     let form = lcl.new_form();
     let label = lcl.new_label(form);
@@ -592,4 +592,87 @@ fn test_key_event_can_release_edit_safely() -> int {
     lcl.process_messages();
     lcl.free_form(form);
     1
+}
+
+@test(expected_type = "string", expected_value = "MainForm")
+fn test_application_main_form_registration_returns_borrowed_form() -> string {
+    lcl.initialize();
+    lcl.initialize();
+    let form = lcl.new_form();
+    let other = lcl.new_form();
+    lcl.register_main_form(form);
+    let registered = lcl.main_form();
+    lcl.set_component_name(registered, "MainForm");
+    let result = lcl.component_name(registered);
+    lcl.free_form(other);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "Replacement")
+fn test_application_can_replace_main_form_before_run() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let other = lcl.new_form();
+    lcl.register_main_form(form);
+    lcl.register_main_form(other);
+    let registered = lcl.main_form();
+    lcl.set_component_name(registered, "Replacement");
+    let result = lcl.component_name(registered);
+    lcl.free_form(other);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "Exception: expected")
+fn test_application_exception_callback_receives_class_and_message() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    lcl.application_on_exception((class_name: string, message: string) => {
+        lcl.set_label_caption(label, class_name + ": " + message);
+    });
+    lcl.application_raise_exception("expected");
+    lcl.application_clear_on_exception();
+    let result = lcl.label_caption(label);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "queued")
+fn test_bounded_message_pump_runs_requested_turns_without_blocking() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    lcl.set_label_caption(label, "waiting");
+    lcl.queue(() => {
+        lcl.set_label_caption(label, "queued");
+    });
+    let no_turns = lcl.process_messages_bounded(0);
+    let turns = lcl.process_messages_bounded(1);
+    let result = lcl.label_caption(label);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    if no_turns == 0 && turns == 1 { result } else { "wrong turns" }
+}
+
+@test(runtime_error = "message-pump turn count must be non-negative")
+fn test_bounded_message_pump_rejects_negative_turns() {
+    lcl.initialize();
+    let ignored = lcl.process_messages_bounded(-1);
+}
+
+@test(runtime_error = "application run cannot be restarted")
+fn test_application_terminate_is_idempotent_and_run_cannot_restart() {
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.register_main_form(form);
+    lcl.queue(() => {
+        lcl.terminate();
+        lcl.terminate();
+    });
+    lcl.run();
+    lcl.run();
+    lcl.free_form(form);
 }

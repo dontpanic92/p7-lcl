@@ -9,7 +9,8 @@ uses
   Controls,
   Forms,
   LCLType,
-  StdCtrls;
+  StdCtrls,
+  SysUtils;
 
 type
   TP7Status = LongWord;
@@ -30,6 +31,18 @@ type
     ArgCount: PtrUInt;
     Output: PP7CallbackValue
   ): TP7Status; cdecl;
+
+  TP7ApplicationEvents = class
+  private
+    FExceptionCallback: QWord;
+    FExceptionRuntime: Pointer;
+    procedure HandleException(Sender: TObject; E: Exception);
+  public
+    destructor Destroy; override;
+    procedure ClearExceptionCallback;
+    procedure SetExceptionCallback(Runtime: Pointer; Token: QWord);
+    procedure TriggerException(const Message: String);
+  end;
 
   TP7Button = class(TButton)
   private
@@ -119,8 +132,7 @@ procedure ReleaseEvent(Runtime: Pointer; var Token: QWord);
 implementation
 
 uses
-  P7LclObjects,
-  SysUtils;
+  P7LclObjects;
 
 const
   P7_STATUS_OK = 0;
@@ -352,6 +364,61 @@ end;
 procedure TP7Button.HandleClick(Sender: TObject);
 begin
   InvokeVoidEvent(FCallbackRuntime, FCallback);
+end;
+
+procedure InvokeStringPairEvent(Runtime: Pointer; Token: QWord;
+  const First, Second: UTF8String);
+var
+  Arguments: array[0..1] of TP7CallbackValue;
+  Output: TP7CallbackValue;
+begin
+  SetStringArgument(Arguments[0], First);
+  SetStringArgument(Arguments[1], Second);
+  InvokeEventValues(Runtime, Token, @Arguments[0], 2, P7_CALLBACK_UNIT, Output);
+end;
+
+destructor TP7ApplicationEvents.Destroy;
+begin
+  ClearExceptionCallback;
+  inherited Destroy;
+end;
+
+procedure TP7ApplicationEvents.HandleException(Sender: TObject; E: Exception);
+begin
+  InvokeStringPairEvent(
+    FExceptionRuntime,
+    FExceptionCallback,
+    UTF8String(E.ClassName),
+    UTF8String(E.Message)
+  );
+end;
+
+procedure TP7ApplicationEvents.ClearExceptionCallback;
+begin
+  if Application <> nil then
+    Application.RemoveOnExceptionHandler(@HandleException);
+  ReleaseEvent(FExceptionRuntime, FExceptionCallback);
+  FExceptionRuntime := nil;
+end;
+
+procedure TP7ApplicationEvents.SetExceptionCallback(Runtime: Pointer; Token: QWord);
+begin
+  ClearExceptionCallback;
+  FExceptionRuntime := Runtime;
+  FExceptionCallback := Token;
+  Application.AddOnExceptionHandler(@HandleException);
+end;
+
+procedure TP7ApplicationEvents.TriggerException(const Message: String);
+var
+  RaisedException: Exception;
+begin
+  RaisedException := Exception.Create(Message);
+  try
+    HandleException(Application, RaisedException);
+  finally
+    RaisedException.Free;
+  end;
 end;
 
 procedure TP7Button.HandleEnter(Sender: TObject);

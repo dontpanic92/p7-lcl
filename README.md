@@ -27,6 +27,7 @@ The current Protosept API is:
 ```p7
 lcl.initialize();
 let form = lcl.new_form();
+lcl.register_main_form(form);
 lcl.set_form_caption(form, "Hello");
 lcl.set_form_bounds(form, 120, 120, 420, 220);
 let label = lcl.new_label(form);
@@ -50,9 +51,17 @@ lcl.free_form(form);
 ```
 
 Hosts that own their event loop can call `lcl.process_messages()` instead of
-`lcl.run()`. `lcl.invoke(callback)` executes synchronously after verifying the
-designated UI thread, while `lcl.queue(callback)` retains the closure until the
-next LCL message-pump turn.
+`lcl.run()`. `lcl.process_messages_bounded(max_turns)` performs at most the
+requested number of non-blocking pump turns. `lcl.invoke(callback)` executes
+synchronously, while `lcl.queue(callback)` retains the closure until an LCL
+message-pump turn.
+
+Protosept and this binding are single-threaded; all LCL operations run on that
+one runtime thread, so cross-thread calls are outside the execution model.
+`lcl.initialize()` and `lcl.terminate()` are idempotent. A form must be selected
+with `lcl.register_main_form(form)` before `lcl.run()`. Registration can be
+changed until running starts, but an application loop runs only once and cannot
+be restarted after it returns or is terminated.
 
 `box<lcl.Form>` owns its form. Controls are returned as persistent non-owning
 `handle<lcl.*>` values. Their LCL owner is the form, and owner destruction
@@ -77,6 +86,11 @@ terminate the active application loop, and are returned as a native error by
 the next `lcl.process_messages()` or `lcl.run()` call. The Pascal object table
 validates slot generations on every call, so released or owner-destroyed
 objects produce a native runtime trap instead of dereferencing stale memory.
+
+`lcl.application_on_exception(callback)` roots a
+`fn(string, string)` callback receiving the exception class and message.
+Replace or clear it with `lcl.application_clear_on_exception()` when it is no
+longer needed.
 
 The `protosept` directory is intentionally untracked and points to the local
 Protosept checkout used to build the CLI.

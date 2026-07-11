@@ -146,6 +146,24 @@ fn native_run();
 @intrinsic(name="p7lcl.application.process_messages")
 fn native_process_messages();
 
+@intrinsic(name="p7lcl.application.process_messages_bounded")
+fn native_process_messages_bounded(max_turns: int) -> int;
+
+@intrinsic(name="p7lcl.application.register_main_form")
+fn native_register_main_form(form: box<Form>);
+
+@intrinsic(name="p7lcl.application.main_form")
+fn native_main_form() -> handle<Form>;
+
+@intrinsic(name="p7lcl.application.on_exception")
+fn native_application_on_exception(callback: fn(string, string));
+
+@intrinsic(name="p7lcl.application.clear_on_exception")
+fn native_application_clear_on_exception();
+
+@intrinsic(name="p7lcl.application.raise_exception")
+fn native_application_raise_exception(message: string);
+
 @intrinsic(name="p7lcl.application.invoke")
 fn native_invoke(callback: fn());
 
@@ -471,6 +489,30 @@ pub fn run() {
 
 pub fn process_messages() {
     native_process_messages()
+}
+
+pub fn process_messages_bounded(max_turns: int) -> int {
+    native_process_messages_bounded(max_turns)
+}
+
+pub fn register_main_form(form: box<Form>) {
+    native_register_main_form(form)
+}
+
+pub fn main_form() -> handle<Form> {
+    native_main_form()
+}
+
+pub fn application_on_exception(callback: fn(string, string)) {
+    native_application_on_exception(callback)
+}
+
+pub fn application_clear_on_exception() {
+    native_application_clear_on_exception()
+}
+
+pub fn application_raise_exception(message: string) {
+    native_application_raise_exception(message)
 }
 
 pub fn invoke(callback: fn()) {

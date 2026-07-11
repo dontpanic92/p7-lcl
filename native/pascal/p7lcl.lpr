@@ -268,8 +268,11 @@ type
 
 var
   ApplicationInitialized: Boolean = False;
-  UiThreadAssigned: Boolean = False;
-  UiThreadId: TThreadID;
+  ApplicationRunStarted: Boolean = False;
+  ApplicationRunCompleted: Boolean = False;
+  ApplicationTerminateRequested: Boolean = False;
+  RegisteredMainForm: TP7Form = nil;
+  ApplicationEvents: TP7ApplicationEvents = nil;
 
 constructor TP7Form.Create(AOwner: TComponent);
 begin
@@ -285,6 +288,8 @@ end;
 
 destructor TP7Form.Destroy;
 begin
+  if RegisteredMainForm = Self then
+    RegisteredMainForm := nil;
   ClearAllCallbacks;
   inherited Destroy;
 end;
@@ -484,30 +489,20 @@ begin
   Result := P7_STATUS_ERROR;
 end;
 
-procedure EnsureUiThread;
-begin
-  if not UiThreadAssigned then
-  begin
-    UiThreadAssigned := True;
-    UiThreadId := GetCurrentThreadID
-  end
-  else if UiThreadId <> GetCurrentThreadID then
-    raise Exception.Create('LCL operation called from a different thread');
-end;
-
 procedure EnsureApplication;
 begin
-  EnsureUiThread;
   if ApplicationInitialized then
     Exit;
   RequireDerivedFormResource := False;
   Application.Scaled := True;
+  Application.ShowMainForm := False;
   Application.Initialize;
   {$IFDEF LCLCOCOA}
   NSApplication.sharedApplication.setActivationPolicy(
     NSApplicationActivationPolicyRegular
   );
   {$ENDIF}
+  ApplicationEvents := TP7ApplicationEvents.Create;
   ApplicationInitialized := True;
 end;
 
@@ -540,7 +535,6 @@ function ReadForm(
 var
   Handle: Int64;
 begin
-  EnsureUiThread;
   Result := Api^.GetForeign(
     Api,
     Value,
@@ -563,7 +557,6 @@ function ReadObject(
 var
   Handle: Int64;
 begin
-  EnsureUiThread;
   Result := Api^.GetForeign(
     Api,
     Value,
@@ -788,7 +781,17 @@ begin
     if ArgCount <> 0 then
       Exit(P7_STATUS_INVALID_ARGUMENT);
     EnsureApplication;
+    if ApplicationRunStarted or ApplicationRunCompleted then
+      Exit(ErrorStatus(Api, 'application run cannot be restarted'));
+    if ApplicationTerminateRequested then
+      Exit(ErrorStatus(Api, 'application was terminated before run'));
+    if RegisteredMainForm = nil then
+      Exit(ErrorStatus(Api, 'application main form is not registered'));
+    ApplicationRunStarted := True;
+    RegisteredMainForm.Show;
     Application.Run;
+    ApplicationRunStarted := False;
+    ApplicationRunCompleted := True;
     CallbackError := ConsumeCallbackError;
     if CallbackError = '' then
       Result := P7_STATUS_OK
@@ -796,7 +799,10 @@ begin
       Result := ErrorStatus(Api, CallbackError);
   except
     on E: Exception do
+    begin
+      ApplicationRunStarted := False;
       Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
   end;
 end;
 
@@ -820,6 +826,165 @@ begin
       Result := P7_STATUS_OK
     else
       Result := ErrorStatus(Api, CallbackError);
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function ApplicationProcessMessagesBounded(
+  Userdata: Pointer;
+  Api: PP7CallApi;
+  Args: PP7Value;
+  ArgCount: PtrUInt;
+  Output: PP7Value
+): TP7Status; cdecl;
+var
+  MaxTurns, Turn: Integer;
+  CallbackError: String;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    EnsureApplication;
+    Result := ReadInt(Api, PP7ValueArray(Args)^[0], MaxTurns);
+    if Result <> P7_STATUS_OK then Exit;
+    if MaxTurns < 0 then
+      Exit(ErrorStatus(Api, 'message-pump turn count must be non-negative'));
+    for Turn := 1 to MaxTurns do
+    begin
+      Application.ProcessMessages;
+      CallbackError := ConsumeCallbackError;
+      if CallbackError <> '' then
+        Exit(ErrorStatus(Api, CallbackError));
+      if Application.Terminated then
+        Break;
+    end;
+    if Application.Terminated and (MaxTurns > 0) then
+      Result := Api^.MakeInt(Api, Turn, Output)
+    else
+      Result := Api^.MakeInt(Api, MaxTurns, Output);
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function ApplicationRegisterMainForm(
+  Userdata: Pointer;
+  Api: PP7CallApi;
+  Args: PP7Value;
+  ArgCount: PtrUInt;
+  Output: PP7Value
+): TP7Status; cdecl;
+var
+  Form: TForm;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    EnsureApplication;
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    if ApplicationRunStarted or ApplicationRunCompleted then
+      Exit(ErrorStatus(Api, 'application main form cannot change after run starts'));
+    RegisteredMainForm := TP7Form(Form);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function ApplicationMainForm(
+  Userdata: Pointer;
+  Api: PP7CallApi;
+  Args: PP7Value;
+  ArgCount: PtrUInt;
+  Output: PP7Value
+): TP7Status; cdecl;
+begin
+  try
+    if (ArgCount <> 0) or (Output = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    EnsureApplication;
+    if RegisteredMainForm = nil then
+      Exit(ErrorStatus(Api, 'application main form is not registered'));
+    Result := MakeBorrowedObject(Api, RegisteredMainForm, FORM_TYPE_TAG, Output);
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function ApplicationSetOnException(
+  Userdata: Pointer;
+  Api: PP7CallApi;
+  Args: PP7Value;
+  ArgCount: PtrUInt;
+  Output: PP7Value
+): TP7Status; cdecl;
+var
+  Token: QWord;
+begin
+  Token := 0;
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    EnsureApplication;
+    Result := RetainEventCallback(Api, PP7ValueArray(Args)^[0], Token);
+    if Result <> P7_STATUS_OK then Exit;
+    ApplicationEvents.SetExceptionCallback(Api^.Runtime, Token);
+    Token := 0;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      if Token <> 0 then
+        ReleaseEvent(Api^.Runtime, Token);
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function ApplicationClearOnException(
+  Userdata: Pointer;
+  Api: PP7CallApi;
+  Args: PP7Value;
+  ArgCount: PtrUInt;
+  Output: PP7Value
+): TP7Status; cdecl;
+begin
+  try
+    if ArgCount <> 0 then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    EnsureApplication;
+    ApplicationEvents.ClearExceptionCallback;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function ApplicationRaiseException(
+  Userdata: Pointer;
+  Api: PP7CallApi;
+  Args: PP7Value;
+  ArgCount: PtrUInt;
+  Output: PP7Value
+): TP7Status; cdecl;
+var
+  MessageText: UTF8String;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    EnsureApplication;
+    Result := ReadString(Api, PP7ValueArray(Args)^[0], MessageText);
+    if Result <> P7_STATUS_OK then Exit;
+    ApplicationEvents.TriggerException(String(MessageText));
+    Result := FinishSynchronousEvent(Api);
   except
     on E: Exception do
       Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
@@ -905,6 +1070,9 @@ begin
     if ArgCount <> 0 then
       Exit(P7_STATUS_INVALID_ARGUMENT);
     EnsureApplication;
+    if ApplicationTerminateRequested then
+      Exit(P7_STATUS_OK);
+    ApplicationTerminateRequested := True;
     Application.Terminate;
     Result := P7_STATUS_OK;
   except
@@ -2156,7 +2324,6 @@ begin
   try
     if (ArgCount <> 1) or (Args = nil) then
       Exit(P7_STATUS_INVALID_ARGUMENT);
-    EnsureUiThread;
     Result := Api^.GetForeign(
       Api,
       PP7ValueArray(Args)^[0],
@@ -2202,7 +2369,6 @@ begin
   try
     if (ArgCount <> 2) or (Args = nil) then
       Exit(P7_STATUS_INVALID_ARGUMENT);
-    EnsureUiThread;
     Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
     if Result <> P7_STATUS_OK then
       Exit;

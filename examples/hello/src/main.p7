@@ -3,6 +3,7 @@ import lcl;
 fn main() -> int {
     lcl.initialize();
     let form = lcl.new_form();
+    lcl.register_main_form(form);
     lcl.set_form_caption(form, "Protosept LCL events");
     lcl.set_form_bounds(form, 120, 120, 420, 220);
 
