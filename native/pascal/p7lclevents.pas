@@ -1,6 +1,7 @@
 unit P7LclEvents;
 
 {$mode objfpc}{$H+}
+{$packrecords c}
 
 interface
 
@@ -12,29 +13,11 @@ uses
   Forms,
   LCLType,
   Menus,
+  P7LclAbi,
   StdCtrls,
   SysUtils;
 
 type
-  TP7Status = LongWord;
-  TP7InvokeRootedCallback = function(Runtime: Pointer; Token: QWord): TP7Status; cdecl;
-  TP7ReleaseRootedCallback = function(Runtime: Pointer; Token: QWord): TP7Status; cdecl;
-  TP7CallbackValue = record
-    Kind: LongWord;
-    IntValue: Int64;
-    FloatValue: Double;
-    Bytes: PByte;
-    Length: PtrUInt;
-  end;
-  PP7CallbackValue = ^TP7CallbackValue;
-  TP7InvokeRootedCallbackValues = function(
-    Runtime: Pointer;
-    Token: QWord;
-    Args: PP7CallbackValue;
-    ArgCount: PtrUInt;
-    Output: PP7CallbackValue
-  ): TP7Status; cdecl;
-
   TP7ApplicationEvents = class
   private
     FExceptionCallback: QWord;
@@ -232,14 +215,6 @@ implementation
 
 uses
   P7LclObjects;
-
-const
-  P7_STATUS_OK = 0;
-  P7_STATUS_TYPE_MISMATCH = 3;
-  P7_CALLBACK_UNIT = 0;
-  P7_CALLBACK_INT = 1;
-  P7_CALLBACK_STRING = 4;
-  P7_CALLBACK_FOREIGN = 5;
 
 var
   InvokeRootedCallback: TP7InvokeRootedCallback;

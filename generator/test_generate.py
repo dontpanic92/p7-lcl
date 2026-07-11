@@ -1,6 +1,7 @@
 import copy
 import importlib.util
 from pathlib import Path
+import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,6 +29,47 @@ class GeneratorTests(unittest.TestCase):
         first = generator.render_outputs(self.metadata)
         second = generator.render_outputs(copy.deepcopy(self.metadata))
         self.assertEqual(first, second)
+
+    def test_package_and_lockfile_contract_is_stable(self) -> None:
+        manifest = (ROOT / "p7.toml").read_text(encoding="utf-8")
+        self.assertEqual(
+            manifest,
+            """[package]
+name = "lcl"
+version = "0.1.0"
+kind = "library"
+
+[native]
+extensions = ["native/lib/libp7lcl.dylib"]
+""",
+        )
+
+        lockfile = (ROOT / "p7.lock").read_text(encoding="utf-8")
+        self.assertRegex(
+            lockfile,
+            re.compile(
+                r'^version = 1\n\n'
+                r'\[\[packages\]\]\n'
+                r'name = "lcl"\n'
+                r'version = "0\.1\.0"\n'
+                r'source = "path\+\."\n'
+                r'checksum = "[0-9a-f]{64}"\n'
+                r'dependencies = \[\]\n$'
+            ),
+        )
+
+        example = (ROOT / "examples/hello/p7.toml").read_text(encoding="utf-8")
+        self.assertEqual(
+            example,
+            """[package]
+name = "lcl_hello_example"
+version = "0.1.0"
+kind = "executable"
+
+[dependencies]
+lcl = { path = "../.." }
+""",
+        )
 
     def test_generated_callbacks_are_emitted_and_registered(self) -> None:
         outputs = generator.render_outputs(self.metadata)

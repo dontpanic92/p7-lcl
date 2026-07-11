@@ -138,6 +138,15 @@ drift without building Lazarus:
 ./scripts/check-generated.sh
 ```
 
+The frozen package, ownership, error, extension, and callback compatibility
+contract is documented in [`docs/compatibility-abi.md`](docs/compatibility-abi.md).
+After building the native library, verify older/newer `struct_size` behavior
+and Rust/C/Free Pascal layouts with:
+
+```bash
+./scripts/check-abi.sh
+```
+
 The build uses `~/lazarus`, `/usr/local/bin/fpc`, and the Cocoa widgetset. It
 passes `-ld_classic` because the current Apple linker rejects Objective-C
 metadata emitted by this FPC/Lazarus toolchain.

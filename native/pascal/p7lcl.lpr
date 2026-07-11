@@ -25,24 +25,11 @@ uses
   CocoaAll,
   {$ENDIF}
   SysUtils,
+  P7LclAbi,
   P7LclObjects,
   P7LclEvents;
 
 const
-  P7_NATIVE_ABI_VERSION = 1;
-
-  P7_STATUS_OK = 0;
-  P7_STATUS_ERROR = 1;
-  P7_STATUS_INVALID_ARGUMENT = 2;
-  P7_TYPE_ANY = 0;
-  P7_TYPE_INT = 1;
-  P7_TYPE_BOOL = 3;
-  P7_TYPE_STRING = 4;
-  P7_TYPE_CLOSURE = 8;
-  P7_TYPE_FOREIGN = 9;
-  P7_TYPE_I32 = 14;
-  P7_TYPE_U32 = 15;
-
   OBJECT_TYPE_TAG: PAnsiChar = 'lcl.TObject';
   COMPONENT_TYPE_TAG: PAnsiChar = 'lcl.TComponent';
   CONTROL_TYPE_TAG: PAnsiChar = 'lcl.TControl';
@@ -69,176 +56,6 @@ const
   GROUP_BOX_TYPE_TAG: PAnsiChar = 'lcl.TGroupBox';
 
 type
-  TP7Status = LongWord;
-  TP7NativeType = LongWord;
-
-  TP7Value = record
-    Token: QWord;
-  end;
-  PP7Value = ^TP7Value;
-  TP7ValueArray = array[0..(MaxInt div SizeOf(TP7Value)) - 1] of TP7Value;
-  PP7ValueArray = ^TP7ValueArray;
-
-  PP7CallApi = ^TP7CallApi;
-  PP7HostApi = ^TP7HostApi;
-
-  TP7NativeCallback = function(
-    Userdata: Pointer;
-    Api: PP7CallApi;
-    Args: PP7Value;
-    ArgCount: PtrUInt;
-    Output: PP7Value
-  ): TP7Status; cdecl;
-
-  TP7DropUserdata = procedure(Userdata: Pointer); cdecl;
-
-  TP7NativeFunctionDescriptor = record
-    StructSize: PtrUInt;
-    Name: PAnsiChar;
-    Params: ^TP7NativeType;
-    ParamCount: PtrUInt;
-    ResultType: TP7NativeType;
-    HasResult: Byte;
-    Callback: TP7NativeCallback;
-    Userdata: Pointer;
-    DropUserdata: TP7DropUserdata;
-  end;
-  PP7NativeFunctionDescriptor = ^TP7NativeFunctionDescriptor;
-
-  TP7RegisterFunction = function(
-    Runtime: Pointer;
-    Descriptor: PP7NativeFunctionDescriptor
-  ): TP7Status; cdecl;
-
-  TP7RegisterForeignType = function(
-    Runtime: Pointer;
-    TypeTag: PAnsiChar;
-    Finalizer: PAnsiChar
-  ): TP7Status; cdecl;
-
-  TP7InvalidateRuntimeHandle = function(
-    Runtime: Pointer;
-    TypeTag: PByte;
-    TypeTagLength: PtrUInt;
-    Handle: Int64
-  ): TP7Status; cdecl;
-  TP7InvokeRootedCallback = function(
-    Runtime: Pointer;
-    Token: QWord
-  ): TP7Status; cdecl;
-  TP7ReleaseRootedCallback = function(
-    Runtime: Pointer;
-    Token: QWord
-  ): TP7Status; cdecl;
-
-  TP7HostApi = record
-    AbiVersion: LongWord;
-    StructSize: PtrUInt;
-    Runtime: Pointer;
-    RegisterFunction: TP7RegisterFunction;
-    RegisterForeignType: TP7RegisterForeignType;
-    InvalidateForeignHandle: TP7InvalidateRuntimeHandle;
-    InvokeRootedCallback: TP7InvokeRootedCallback;
-    ReleaseRootedCallback: TP7ReleaseRootedCallback;
-    InvokeRootedCallbackValues: TP7InvokeRootedCallbackValues;
-  end;
-
-  TP7ValueKindFn = function(Api: PP7CallApi; Value: TP7Value): LongWord; cdecl;
-  TP7GetIntFn = function(
-    Api: PP7CallApi;
-    Value: TP7Value;
-    Output: PInt64
-  ): TP7Status; cdecl;
-  TP7GetFloatFn = function(Api: PP7CallApi; Value: TP7Value; Output: PDouble): TP7Status; cdecl;
-  TP7GetBoolFn = function(Api: PP7CallApi; Value: TP7Value; Output: PByte): TP7Status; cdecl;
-  TP7CopyStringFn = function(
-    Api: PP7CallApi;
-    Value: TP7Value;
-    Output: PByte;
-    Capacity: PtrUInt;
-    Length: PPtrUInt
-  ): TP7Status; cdecl;
-  TP7MakeIntFn = function(Api: PP7CallApi; Value: Int64; Output: PP7Value): TP7Status; cdecl;
-  TP7MakeFloatFn = function(Api: PP7CallApi; Value: Double; Output: PP7Value): TP7Status; cdecl;
-  TP7MakeBoolFn = function(Api: PP7CallApi; Value: Byte; Output: PP7Value): TP7Status; cdecl;
-  TP7MakeStringFn = function(
-    Api: PP7CallApi;
-    Value: PByte;
-    Length: PtrUInt;
-    Output: PP7Value
-  ): TP7Status; cdecl;
-  TP7MakeForeignFn = function(
-    Api: PP7CallApi;
-    TypeTag: PByte;
-    TypeTagLength: PtrUInt;
-    Handle: Int64;
-    Output: PP7Value
-  ): TP7Status; cdecl;
-  TP7InvalidateCallHandleFn = function(
-    Api: PP7CallApi;
-    TypeTag: PByte;
-    TypeTagLength: PtrUInt;
-    Handle: Int64
-  ): TP7Status; cdecl;
-  TP7InvokeCallbackFn = function(
-    Api: PP7CallApi;
-    Callback: TP7Value;
-    Args: PP7Value;
-    ArgCount: PtrUInt;
-    Output: PP7Value
-  ): TP7Status; cdecl;
-  TP7SetErrorFn = function(
-    Api: PP7CallApi;
-    Message: PByte;
-    Length: PtrUInt
-  ): TP7Status; cdecl;
-  TP7SetErrorDetailsFn = function(
-    Api: PP7CallApi;
-    OperationName: PByte;
-    OperationLength: PtrUInt;
-    ErrorClass: PByte;
-    ErrorClassLength: PtrUInt;
-    Message: PByte;
-    MessageLength: PtrUInt
-  ): TP7Status; cdecl;
-  TP7GetForeignFn = function(
-    Api: PP7CallApi;
-    Value: TP7Value;
-    TypeTag: PByte;
-    TypeTagLength: PtrUInt;
-    Output: PInt64
-  ): TP7Status; cdecl;
-  TP7RetainCallbackFn = function(
-    Api: PP7CallApi;
-    Value: TP7Value;
-    Output: PQWord
-  ): TP7Status; cdecl;
-
-  TP7CallApi = record
-    AbiVersion: LongWord;
-    StructSize: PtrUInt;
-    Context: Pointer;
-    ValueKind: TP7ValueKindFn;
-    GetInt: TP7GetIntFn;
-    GetFloat: TP7GetFloatFn;
-    GetBool: TP7GetBoolFn;
-    CopyString: TP7CopyStringFn;
-    MakeInt: TP7MakeIntFn;
-    MakeFloat: TP7MakeFloatFn;
-    MakeBool: TP7MakeBoolFn;
-    MakeString: TP7MakeStringFn;
-    MakeForeignOwned: TP7MakeForeignFn;
-    MakeForeignRef: TP7MakeForeignFn;
-    MakeForeignHandle: TP7MakeForeignFn;
-    InvalidateForeignHandle: TP7InvalidateCallHandleFn;
-    InvokeCallback: TP7InvokeCallbackFn;
-    SetError: TP7SetErrorFn;
-    GetForeign: TP7GetForeignFn;
-    RetainCallback: TP7RetainCallbackFn;
-    Runtime: Pointer;
-    SetErrorDetails: TP7SetErrorDetailsFn;
-  end;
-
   TP7Form = class(TForm)
   private
     FCloseCallback: QWord;
@@ -486,9 +303,7 @@ begin
   end;
   EncodedClass := UTF8Encode(ClassText);
   EncodedDetail := UTF8Encode(DetailText);
-  if Assigned(Api)
-    and (Api^.StructSize >= SizeOf(TP7CallApi))
-    and Assigned(Api^.SetErrorDetails) then
+  if P7CallApiHasSetErrorDetails(Api) and Assigned(Api^.SetErrorDetails) then
     Api^.SetErrorDetails(
       Api,
       nil,
@@ -3254,9 +3069,10 @@ end;
 function p7_extension_init_v1(Api: PP7HostApi): TP7Status; cdecl;
 begin
   try
+    P7AssertAbiLayout;
     if (Api = nil) or
        (Api^.AbiVersion <> P7_NATIVE_ABI_VERSION) or
-       (Api^.StructSize < SizeOf(TP7HostApi)) then
+       (Api^.StructSize < P7HostApiRequiredSize) then
       Exit(P7_STATUS_INVALID_ARGUMENT);
 
     ConfigureCallbacks(
