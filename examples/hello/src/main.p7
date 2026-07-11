@@ -28,11 +28,16 @@ fn main() -> int {
         lcl.set_label_caption(status, lcl.edit_text(edit));
     });
 
+    let panel = lcl.new_panel(form);
+    lcl.set_panel_caption(panel, "Close the window to exit");
+    lcl.set_panel_bounds(panel, 24, 152, 372, 36);
+
     lcl.show_form(form);
     lcl.run();
 
     let correct = lcl.form_caption(form) == "Protosept LCL events";
     lcl.free_button(button);
+    lcl.free_panel(panel);
     lcl.free_label(status);
     lcl.free_edit(edit);
     lcl.free_label(prompt);

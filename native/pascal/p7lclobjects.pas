@@ -4,24 +4,54 @@ unit P7LclObjects;
 
 interface
 
-function AddObject(Instance: TObject): Int64;
+type
+  TP7InvalidateRuntimeHandle = function(
+    Runtime: Pointer;
+    TypeTag: PByte;
+    TypeTagLength: PtrUInt;
+    Handle: Int64
+  ): LongWord; cdecl;
+
+procedure ConfigureObjectInvalidation(InvalidateHandle: TP7InvalidateRuntimeHandle);
+function AddObject(Instance: TObject; Runtime: Pointer; const TypeTag: UTF8String): Int64;
 function FindObject(Handle: Int64; ExpectedClass: TClass): TObject;
 function FindObjectOrNil(Handle: Int64; ExpectedClass: TClass): TObject;
+function DetachObject(Handle: Int64): TObject;
 procedure ReleaseObject(Handle: Int64);
 
 implementation
 
 uses
+  Classes,
   SysUtils;
 
 type
+  TObjectSlotNotifier = class(TComponent)
+  private
+    FIndex: Integer;
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+  public
+    constructor Create(AIndex: Integer);
+  end;
+
   TObjectSlot = record
     Instance: TObject;
     Generation: LongWord;
+    Runtime: Pointer;
+    TypeTag: UTF8String;
+    Notifier: TObjectSlotNotifier;
   end;
 
 var
   ObjectSlots: array of TObjectSlot;
+  InvalidateRuntimeHandle: TP7InvalidateRuntimeHandle;
+  ObjectTableShuttingDown: Boolean;
+
+procedure ConfigureObjectInvalidation(InvalidateHandle: TP7InvalidateRuntimeHandle);
+begin
+  InvalidateRuntimeHandle := InvalidateHandle;
+end;
 
 function EncodeHandle(Index, Generation: LongWord): Int64;
 begin
@@ -40,7 +70,51 @@ begin
     Dec(Index);
 end;
 
-function AddObject(Instance: TObject): Int64;
+procedure InvalidateSlot(Index: Integer);
+var
+  Handle: Int64;
+  EncodedTag: UTF8String;
+begin
+  if (Index < 0) or (Index > High(ObjectSlots)) or
+     (ObjectSlots[Index].Instance = nil) then
+    Exit;
+  Handle := EncodeHandle(LongWord(Index), ObjectSlots[Index].Generation);
+  EncodedTag := ObjectSlots[Index].TypeTag;
+  if not ObjectTableShuttingDown and
+     Assigned(InvalidateRuntimeHandle) and
+     (ObjectSlots[Index].Runtime <> nil) and
+     (EncodedTag <> '') then
+    InvalidateRuntimeHandle(
+      ObjectSlots[Index].Runtime,
+      PByte(PAnsiChar(EncodedTag)),
+      Length(EncodedTag),
+      Handle
+    );
+  ObjectSlots[Index].Instance := nil;
+  ObjectSlots[Index].Runtime := nil;
+  ObjectSlots[Index].TypeTag := '';
+  Inc(ObjectSlots[Index].Generation);
+  if ObjectSlots[Index].Generation = 0 then
+    ObjectSlots[Index].Generation := 1;
+end;
+
+constructor TObjectSlotNotifier.Create(AIndex: Integer);
+begin
+  inherited Create(nil);
+  FIndex := AIndex;
+end;
+
+procedure TObjectSlotNotifier.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  if (Operation = opRemove) and
+     (FIndex >= 0) and
+     (FIndex <= High(ObjectSlots)) and
+     (ObjectSlots[FIndex].Instance = AComponent) then
+    InvalidateSlot(FIndex);
+end;
+
+function AddObject(Instance: TObject; Runtime: Pointer; const TypeTag: UTF8String): Int64;
 var
   Index: Integer;
 begin
@@ -50,6 +124,12 @@ begin
       if ObjectSlots[Index].Generation = 0 then
         ObjectSlots[Index].Generation := 1;
       ObjectSlots[Index].Instance := Instance;
+      ObjectSlots[Index].Runtime := Runtime;
+      ObjectSlots[Index].TypeTag := TypeTag;
+      if ObjectSlots[Index].Notifier = nil then
+        ObjectSlots[Index].Notifier := TObjectSlotNotifier.Create(Index);
+      if Instance is TComponent then
+        TComponent(Instance).FreeNotification(ObjectSlots[Index].Notifier);
       Exit(EncodeHandle(LongWord(Index), ObjectSlots[Index].Generation));
     end;
 
@@ -57,6 +137,11 @@ begin
   SetLength(ObjectSlots, Index + 1);
   ObjectSlots[Index].Generation := 1;
   ObjectSlots[Index].Instance := Instance;
+  ObjectSlots[Index].Runtime := Runtime;
+  ObjectSlots[Index].TypeTag := TypeTag;
+  ObjectSlots[Index].Notifier := TObjectSlotNotifier.Create(Index);
+  if Instance is TComponent then
+    TComponent(Instance).FreeNotification(ObjectSlots[Index].Notifier);
   Result := EncodeHandle(LongWord(Index), 1);
 end;
 
@@ -93,29 +178,40 @@ end;
 
 procedure ReleaseObject(Handle: Int64);
 var
-  Index, Generation: LongWord;
   Instance: TObject;
 begin
+  Instance := DetachObject(Handle);
+  Instance.Free;
+end;
+
+function DetachObject(Handle: Int64): TObject;
+var
+  Index, Generation: LongWord;
+begin
+  Result := nil;
   if not DecodeHandle(Handle, Index, Generation) or
      (Index >= LongWord(Length(ObjectSlots))) or
      (ObjectSlots[Index].Generation <> Generation) or
      (ObjectSlots[Index].Instance = nil) then
     Exit;
 
-  Instance := ObjectSlots[Index].Instance;
-  ObjectSlots[Index].Instance := nil;
-  Inc(ObjectSlots[Index].Generation);
-  if ObjectSlots[Index].Generation = 0 then
-    ObjectSlots[Index].Generation := 1;
-  Instance.Free;
+  Result := ObjectSlots[Index].Instance;
+  if Result is TComponent then
+    TComponent(Result).RemoveFreeNotification(ObjectSlots[Index].Notifier);
+  InvalidateSlot(Index);
+  FreeAndNil(ObjectSlots[Index].Notifier);
 end;
 
 procedure ReleaseAllObjects;
 var
   Index: Integer;
 begin
+  ObjectTableShuttingDown := True;
   for Index := 0 to High(ObjectSlots) do
+  begin
     FreeAndNil(ObjectSlots[Index].Instance);
+    FreeAndNil(ObjectSlots[Index].Notifier);
+  end;
   ObjectSlots := nil;
 end;
 

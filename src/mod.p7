@@ -32,11 +32,28 @@ pub proto Label {
 pub proto Edit {
 }
 
+@foreign(
+    type_tag="lcl.TPanel",
+    dispatcher="p7lcl.panel.unused",
+    finalizer="p7lcl.panel.finalize",
+)
+pub proto Panel {
+}
+
 @intrinsic(name="p7lcl.application.initialize")
 fn native_initialize();
 
 @intrinsic(name="p7lcl.application.run")
 fn native_run();
+
+@intrinsic(name="p7lcl.application.process_messages")
+fn native_process_messages();
+
+@intrinsic(name="p7lcl.application.invoke")
+fn native_invoke(callback: fn());
+
+@intrinsic(name="p7lcl.application.queue")
+fn native_queue(callback: fn());
 
 @intrinsic(name="p7lcl.application.terminate")
 fn native_terminate();
@@ -59,68 +76,122 @@ fn native_show_form(form: box<Form>);
 @intrinsic(name="p7lcl.form.close")
 fn native_close_form(form: box<Form>);
 
+@intrinsic(name="p7lcl.form.on_close")
+fn native_form_on_close(form: box<Form>, callback: fn());
+
+@intrinsic(name="p7lcl.form.clear_on_close")
+fn native_form_clear_on_close(form: box<Form>);
+
+@intrinsic(name="p7lcl.form.on_close_query")
+fn native_form_on_close_query(form: box<Form>, callback: fn() -> bool);
+
+@intrinsic(name="p7lcl.form.clear_on_close_query")
+fn native_form_clear_on_close_query(form: box<Form>);
+
 @intrinsic(name="p7lcl.form.free")
 fn native_free_form(form: box<Form>);
 
 @intrinsic(name="p7lcl.button.create")
-fn native_create_button(form: box<Form>) -> box<Button>;
+fn native_create_button(form: box<Form>) -> handle<Button>;
 
 @intrinsic(name="p7lcl.button.set_caption")
-fn native_set_button_caption(button: box<Button>, caption: string);
+fn native_set_button_caption(button: handle<Button>, caption: string);
 
 @intrinsic(name="p7lcl.button.set_bounds")
-fn native_set_button_bounds(button: box<Button>, left: int, top: int, width: int, height: int);
+fn native_set_button_bounds(button: handle<Button>, left: int, top: int, width: int, height: int);
 
 @intrinsic(name="p7lcl.button.set_enabled")
-fn native_set_button_enabled(button: box<Button>, enabled: bool);
+fn native_set_button_enabled(button: handle<Button>, enabled: bool);
+
+@intrinsic(name="p7lcl.button.set_visible")
+fn native_set_button_visible(button: handle<Button>, visible: bool);
 
 @intrinsic(name="p7lcl.button.on_click")
-fn native_button_on_click(button: box<Button>, callback: fn());
+fn native_button_on_click(button: handle<Button>, callback: fn());
 
 @intrinsic(name="p7lcl.button.clear_on_click")
-fn native_button_clear_on_click(button: box<Button>);
+fn native_button_clear_on_click(button: handle<Button>);
 
 @intrinsic(name="p7lcl.button.click")
-fn native_click_button(button: box<Button>);
+fn native_click_button(button: handle<Button>);
 
 @intrinsic(name="p7lcl.button.free")
-fn native_free_button(button: box<Button>);
+fn native_free_button(button: handle<Button>);
 
 @intrinsic(name="p7lcl.label.create")
-fn native_create_label(form: box<Form>) -> box<Label>;
+fn native_create_label(form: box<Form>) -> handle<Label>;
 
 @intrinsic(name="p7lcl.label.set_caption")
-fn native_set_label_caption(label: box<Label>, caption: string);
+fn native_set_label_caption(label: handle<Label>, caption: string);
 
 @intrinsic(name="p7lcl.label.caption")
-fn native_label_caption(label: box<Label>) -> string;
+fn native_label_caption(label: handle<Label>) -> string;
 
 @intrinsic(name="p7lcl.label.set_bounds")
-fn native_set_label_bounds(label: box<Label>, left: int, top: int, width: int, height: int);
+fn native_set_label_bounds(label: handle<Label>, left: int, top: int, width: int, height: int);
+
+@intrinsic(name="p7lcl.label.set_visible")
+fn native_set_label_visible(label: handle<Label>, visible: bool);
 
 @intrinsic(name="p7lcl.label.free")
-fn native_free_label(label: box<Label>);
+fn native_free_label(label: handle<Label>);
 
 @intrinsic(name="p7lcl.edit.create")
-fn native_create_edit(form: box<Form>) -> box<Edit>;
+fn native_create_edit(form: box<Form>) -> handle<Edit>;
 
 @intrinsic(name="p7lcl.edit.set_text")
-fn native_set_edit_text(edit: box<Edit>, text: string);
+fn native_set_edit_text(edit: handle<Edit>, text: string);
 
 @intrinsic(name="p7lcl.edit.text")
-fn native_edit_text(edit: box<Edit>) -> string;
+fn native_edit_text(edit: handle<Edit>) -> string;
 
 @intrinsic(name="p7lcl.edit.set_bounds")
-fn native_set_edit_bounds(edit: box<Edit>, left: int, top: int, width: int, height: int);
+fn native_set_edit_bounds(edit: handle<Edit>, left: int, top: int, width: int, height: int);
+
+@intrinsic(name="p7lcl.edit.set_enabled")
+fn native_set_edit_enabled(edit: handle<Edit>, enabled: bool);
+
+@intrinsic(name="p7lcl.edit.set_visible")
+fn native_set_edit_visible(edit: handle<Edit>, visible: bool);
+
+@intrinsic(name="p7lcl.edit.set_focus")
+fn native_edit_set_focus(edit: handle<Edit>);
 
 @intrinsic(name="p7lcl.edit.on_change")
-fn native_edit_on_change(edit: box<Edit>, callback: fn());
+fn native_edit_on_change(edit: handle<Edit>, callback: fn());
 
 @intrinsic(name="p7lcl.edit.clear_on_change")
-fn native_edit_clear_on_change(edit: box<Edit>);
+fn native_edit_clear_on_change(edit: handle<Edit>);
+
+@intrinsic(name="p7lcl.edit.on_key_press")
+fn native_edit_on_key_press(edit: handle<Edit>, callback: fn(int) -> int);
+
+@intrinsic(name="p7lcl.edit.clear_on_key_press")
+fn native_edit_clear_on_key_press(edit: handle<Edit>);
+
+@intrinsic(name="p7lcl.edit.send_key_press")
+fn native_edit_send_key_press(edit: handle<Edit>, key: int) -> int;
 
 @intrinsic(name="p7lcl.edit.free")
-fn native_free_edit(edit: box<Edit>);
+fn native_free_edit(edit: handle<Edit>);
+
+@intrinsic(name="p7lcl.panel.create")
+fn native_create_panel(form: box<Form>) -> handle<Panel>;
+
+@intrinsic(name="p7lcl.panel.set_caption")
+fn native_set_panel_caption(panel: handle<Panel>, caption: string);
+
+@intrinsic(name="p7lcl.panel.set_bounds")
+fn native_set_panel_bounds(panel: handle<Panel>, left: int, top: int, width: int, height: int);
+
+@intrinsic(name="p7lcl.panel.set_enabled")
+fn native_set_panel_enabled(panel: handle<Panel>, enabled: bool);
+
+@intrinsic(name="p7lcl.panel.set_visible")
+fn native_set_panel_visible(panel: handle<Panel>, visible: bool);
+
+@intrinsic(name="p7lcl.panel.free")
+fn native_free_panel(panel: handle<Panel>);
 
 pub fn initialize() {
     native_initialize()
@@ -128,6 +199,18 @@ pub fn initialize() {
 
 pub fn run() {
     native_run()
+}
+
+pub fn process_messages() {
+    native_process_messages()
+}
+
+pub fn invoke(callback: fn()) {
+    native_invoke(callback)
+}
+
+pub fn queue(callback: fn()) {
+    native_queue(callback)
 }
 
 pub fn terminate() {
@@ -158,86 +241,158 @@ pub fn close_form(form: box<Form>) {
     native_close_form(form)
 }
 
+pub fn form_on_close(form: box<Form>, callback: fn()) {
+    native_form_on_close(form, callback)
+}
+
+pub fn form_clear_on_close(form: box<Form>) {
+    native_form_clear_on_close(form)
+}
+
+pub fn form_on_close_query(form: box<Form>, callback: fn() -> bool) {
+    native_form_on_close_query(form, callback)
+}
+
+pub fn form_clear_on_close_query(form: box<Form>) {
+    native_form_clear_on_close_query(form)
+}
+
 pub fn free_form(form: box<Form>) {
     native_free_form(form)
 }
 
-pub fn new_button(form: box<Form>) -> box<Button> {
+pub fn new_button(form: box<Form>) -> handle<Button> {
     native_create_button(form)
 }
 
-pub fn set_button_caption(button: box<Button>, caption: string) {
+pub fn set_button_caption(button: handle<Button>, caption: string) {
     native_set_button_caption(button, caption)
 }
 
-pub fn set_button_bounds(button: box<Button>, left: int, top: int, width: int, height: int) {
+pub fn set_button_bounds(button: handle<Button>, left: int, top: int, width: int, height: int) {
     native_set_button_bounds(button, left, top, width, height)
 }
 
-pub fn set_button_enabled(button: box<Button>, enabled: bool) {
+pub fn set_button_enabled(button: handle<Button>, enabled: bool) {
     native_set_button_enabled(button, enabled)
 }
 
-pub fn button_on_click(button: box<Button>, callback: fn()) {
+pub fn set_button_visible(button: handle<Button>, visible: bool) {
+    native_set_button_visible(button, visible)
+}
+
+pub fn button_on_click(button: handle<Button>, callback: fn()) {
     native_button_on_click(button, callback)
 }
 
-pub fn button_clear_on_click(button: box<Button>) {
+pub fn button_clear_on_click(button: handle<Button>) {
     native_button_clear_on_click(button)
 }
 
-pub fn click_button(button: box<Button>) {
+pub fn click_button(button: handle<Button>) {
     native_click_button(button)
 }
 
-pub fn free_button(button: box<Button>) {
+pub fn free_button(button: handle<Button>) {
     native_free_button(button)
 }
 
-pub fn new_label(form: box<Form>) -> box<Label> {
+pub fn new_label(form: box<Form>) -> handle<Label> {
     native_create_label(form)
 }
 
-pub fn set_label_caption(label: box<Label>, caption: string) {
+pub fn set_label_caption(label: handle<Label>, caption: string) {
     native_set_label_caption(label, caption)
 }
 
-pub fn label_caption(label: box<Label>) -> string {
+pub fn label_caption(label: handle<Label>) -> string {
     native_label_caption(label)
 }
 
-pub fn set_label_bounds(label: box<Label>, left: int, top: int, width: int, height: int) {
+pub fn set_label_bounds(label: handle<Label>, left: int, top: int, width: int, height: int) {
     native_set_label_bounds(label, left, top, width, height)
 }
 
-pub fn free_label(label: box<Label>) {
+pub fn set_label_visible(label: handle<Label>, visible: bool) {
+    native_set_label_visible(label, visible)
+}
+
+pub fn free_label(label: handle<Label>) {
     native_free_label(label)
 }
 
-pub fn new_edit(form: box<Form>) -> box<Edit> {
+pub fn new_edit(form: box<Form>) -> handle<Edit> {
     native_create_edit(form)
 }
 
-pub fn set_edit_text(edit: box<Edit>, text: string) {
+pub fn set_edit_text(edit: handle<Edit>, text: string) {
     native_set_edit_text(edit, text)
 }
 
-pub fn edit_text(edit: box<Edit>) -> string {
+pub fn edit_text(edit: handle<Edit>) -> string {
     native_edit_text(edit)
 }
 
-pub fn set_edit_bounds(edit: box<Edit>, left: int, top: int, width: int, height: int) {
+pub fn set_edit_bounds(edit: handle<Edit>, left: int, top: int, width: int, height: int) {
     native_set_edit_bounds(edit, left, top, width, height)
 }
 
-pub fn edit_on_change(edit: box<Edit>, callback: fn()) {
+pub fn set_edit_enabled(edit: handle<Edit>, enabled: bool) {
+    native_set_edit_enabled(edit, enabled)
+}
+
+pub fn set_edit_visible(edit: handle<Edit>, visible: bool) {
+    native_set_edit_visible(edit, visible)
+}
+
+pub fn edit_set_focus(edit: handle<Edit>) {
+    native_edit_set_focus(edit)
+}
+
+pub fn edit_on_change(edit: handle<Edit>, callback: fn()) {
     native_edit_on_change(edit, callback)
 }
 
-pub fn edit_clear_on_change(edit: box<Edit>) {
+pub fn edit_clear_on_change(edit: handle<Edit>) {
     native_edit_clear_on_change(edit)
 }
 
-pub fn free_edit(edit: box<Edit>) {
+pub fn edit_on_key_press(edit: handle<Edit>, callback: fn(int) -> int) {
+    native_edit_on_key_press(edit, callback)
+}
+
+pub fn edit_clear_on_key_press(edit: handle<Edit>) {
+    native_edit_clear_on_key_press(edit)
+}
+
+pub fn edit_send_key_press(edit: handle<Edit>, key: int) -> int {
+    native_edit_send_key_press(edit, key)
+}
+
+pub fn free_edit(edit: handle<Edit>) {
     native_free_edit(edit)
+}
+
+pub fn new_panel(form: box<Form>) -> handle<Panel> {
+    native_create_panel(form)
+}
+
+pub fn set_panel_caption(panel: handle<Panel>, caption: string) {
+    native_set_panel_caption(panel, caption)
+}
+
+pub fn set_panel_bounds(panel: handle<Panel>, left: int, top: int, width: int, height: int) {
+    native_set_panel_bounds(panel, left, top, width, height)
+}
+
+pub fn set_panel_enabled(panel: handle<Panel>, enabled: bool) {
+    native_set_panel_enabled(panel, enabled)
+}
+
+pub fn set_panel_visible(panel: handle<Panel>, visible: bool) {
+    native_set_panel_visible(panel, visible)
+}
+
+pub fn free_panel(panel: handle<Panel>) {
+    native_free_panel(panel)
 }

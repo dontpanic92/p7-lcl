@@ -14,6 +14,7 @@ uses
   Forms,
   Controls,
   StdCtrls,
+  ExtCtrls,
   Classes,
   {$IFDEF LCLCOCOA}
   CocoaAll,
@@ -39,6 +40,7 @@ const
   BUTTON_TYPE_TAG: PAnsiChar = 'lcl.TButton';
   LABEL_TYPE_TAG: PAnsiChar = 'lcl.TLabel';
   EDIT_TYPE_TAG: PAnsiChar = 'lcl.TEdit';
+  PANEL_TYPE_TAG: PAnsiChar = 'lcl.TPanel';
 
 type
   TP7Status = LongWord;
@@ -112,6 +114,7 @@ type
     InvalidateForeignHandle: TP7InvalidateRuntimeHandle;
     InvokeRootedCallback: TP7InvokeRootedCallback;
     ReleaseRootedCallback: TP7ReleaseRootedCallback;
+    InvokeRootedCallbackValues: TP7InvokeRootedCallbackValues;
   end;
 
   TP7ValueKindFn = function(Api: PP7CallApi; Value: TP7Value): LongWord; cdecl;
@@ -163,6 +166,15 @@ type
     Message: PByte;
     Length: PtrUInt
   ): TP7Status; cdecl;
+  TP7SetErrorDetailsFn = function(
+    Api: PP7CallApi;
+    OperationName: PByte;
+    OperationLength: PtrUInt;
+    ErrorClass: PByte;
+    ErrorClassLength: PtrUInt;
+    Message: PByte;
+    MessageLength: PtrUInt
+  ): TP7Status; cdecl;
   TP7GetForeignFn = function(
     Api: PP7CallApi;
     Value: TP7Value;
@@ -198,13 +210,25 @@ type
     GetForeign: TP7GetForeignFn;
     RetainCallback: TP7RetainCallbackFn;
     Runtime: Pointer;
+    SetErrorDetails: TP7SetErrorDetailsFn;
   end;
 
   TP7Form = class(TForm)
   private
+    FCloseCallback: QWord;
+    FCloseRuntime: Pointer;
+    FCloseQueryCallback: QWord;
+    FCloseQueryRuntime: Pointer;
+    FHandlingClose: Boolean;
     procedure HandleClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure HandleCloseQuery(Sender: TObject; var CanClose: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
+    procedure ClearCloseCallback;
+    procedure ClearCloseQueryCallback;
+    function IsHandlingClose: Boolean;
+    procedure SetCloseCallback(Runtime: Pointer; Token: QWord);
+    procedure SetCloseQueryCallback(Runtime: Pointer; Token: QWord);
   end;
 
 var
@@ -216,21 +240,100 @@ constructor TP7Form.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   OnClose := @HandleClose;
+  OnCloseQuery := @HandleCloseQuery;
 end;
 
 procedure TP7Form.HandleClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
+  FHandlingClose := True;
+  try
+    InvokeVoidEvent(FCloseRuntime, FCloseCallback);
+  finally
+    FHandlingClose := False;
+  end;
   CloseAction := caHide;
   Application.Terminate;
 end;
 
+function TP7Form.IsHandlingClose: Boolean;
+begin
+  Result := FHandlingClose;
+end;
+
+procedure TP7Form.HandleCloseQuery(Sender: TObject; var CanClose: Boolean);
+var
+  UpdatedValue: Int64;
+begin
+  if (FCloseQueryCallback <> 0) and
+     InvokeNoArgIntEvent(FCloseQueryRuntime, FCloseQueryCallback, UpdatedValue) then
+    CanClose := UpdatedValue <> 0;
+end;
+
+procedure TP7Form.ClearCloseCallback;
+begin
+  ReleaseEvent(FCloseRuntime, FCloseCallback);
+  FCloseRuntime := nil;
+end;
+
+procedure TP7Form.ClearCloseQueryCallback;
+begin
+  ReleaseEvent(FCloseQueryRuntime, FCloseQueryCallback);
+  FCloseQueryRuntime := nil;
+end;
+
+procedure TP7Form.SetCloseCallback(Runtime: Pointer; Token: QWord);
+begin
+  ClearCloseCallback;
+  FCloseRuntime := Runtime;
+  FCloseCallback := Token;
+end;
+
+procedure TP7Form.SetCloseQueryCallback(Runtime: Pointer; Token: QWord);
+begin
+  ClearCloseQueryCallback;
+  FCloseQueryRuntime := Runtime;
+  FCloseQueryCallback := Token;
+end;
+
 function ErrorStatus(Api: PP7CallApi; const MessageText: String): TP7Status;
 var
-  Encoded: UTF8String;
+  Separator: SizeInt;
+  ClassText: String;
+  DetailText: String;
+  EncodedClass: UTF8String;
+  EncodedDetail: UTF8String;
 begin
-  Encoded := UTF8Encode(MessageText);
-  if Assigned(Api) and Assigned(Api^.SetError) then
-    Api^.SetError(Api, PByte(PAnsiChar(Encoded)), Length(Encoded));
+  Separator := Pos(': ', MessageText);
+  if Separator > 1 then
+  begin
+    ClassText := Copy(MessageText, 1, Separator - 1);
+    DetailText := Copy(MessageText, Separator + 2, MaxInt)
+  end
+  else
+  begin
+    ClassText := '';
+    DetailText := MessageText
+  end;
+  EncodedClass := UTF8Encode(ClassText);
+  EncodedDetail := UTF8Encode(DetailText);
+  if Assigned(Api)
+    and (Api^.StructSize >= SizeOf(TP7CallApi))
+    and Assigned(Api^.SetErrorDetails) then
+    Api^.SetErrorDetails(
+      Api,
+      nil,
+      0,
+      PByte(PAnsiChar(EncodedClass)),
+      Length(EncodedClass),
+      PByte(PAnsiChar(EncodedDetail)),
+      Length(EncodedDetail)
+    )
+  else if Assigned(Api) and Assigned(Api^.SetError) then
+    Api^.SetError(
+      Api,
+      PByte(PAnsiChar(EncodedDetail)),
+      Length(EncodedDetail)
+    );
   Result := P7_STATUS_ERROR;
 end;
 
@@ -371,8 +474,29 @@ function MakeOwnedObject(
 var
   Handle: Int64;
 begin
-  Handle := AddObject(Instance);
+  Handle := AddObject(Instance, Api^.Runtime, UTF8String(TypeTag));
   Result := Api^.MakeForeignOwned(
+    Api,
+    PByte(TypeTag),
+    StrLen(TypeTag),
+    Handle,
+    Output
+  );
+  if Result <> P7_STATUS_OK then
+    ReleaseObject(Handle);
+end;
+
+function MakeHandleObject(
+  Api: PP7CallApi;
+  Instance: TObject;
+  TypeTag: PAnsiChar;
+  Output: PP7Value
+): TP7Status;
+var
+  Handle: Int64;
+begin
+  Handle := AddObject(Instance, Api^.Runtime, UTF8String(TypeTag));
+  Result := Api^.MakeForeignHandle(
     Api,
     PByte(TypeTag),
     StrLen(TypeTag),
@@ -391,6 +515,35 @@ function RetainEventCallback(
 begin
   Token := 0;
   Result := Api^.RetainCallback(Api, Value, @Token);
+end;
+
+procedure ClearComponentCallbacks(Component: TComponent);
+var
+  Index: Integer;
+begin
+  if Component is TP7Button then
+    TP7Button(Component).ClearCallback
+  else if Component is TP7Edit then
+  begin
+    TP7Edit(Component).ClearCallback;
+    TP7Edit(Component).ClearKeyPressCallback;
+  end;
+  for Index := 0 to Component.ComponentCount - 1 do
+    ClearComponentCallbacks(Component.Components[Index]);
+end;
+
+procedure ReleaseControlObject(Handle: Int64);
+var
+  Instance: TObject;
+begin
+  if EventCallbackActive then
+  begin
+    Instance := DetachObject(Handle);
+    if Instance <> nil then
+      QueueObjectFree(Instance);
+  end
+  else
+    ReleaseObject(Handle);
 end;
 
 function ApplicationInitialize(
@@ -438,6 +591,99 @@ begin
   end;
 end;
 
+function ApplicationProcessMessages(
+  Userdata: Pointer;
+  Api: PP7CallApi;
+  Args: PP7Value;
+  ArgCount: PtrUInt;
+  Output: PP7Value
+): TP7Status; cdecl;
+var
+  CallbackError: String;
+begin
+  try
+    if ArgCount <> 0 then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    EnsureApplication;
+    Application.ProcessMessages;
+    CallbackError := ConsumeCallbackError;
+    if CallbackError = '' then
+      Result := P7_STATUS_OK
+    else
+      Result := ErrorStatus(Api, CallbackError);
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function ApplicationInvoke(
+  Userdata: Pointer;
+  Api: PP7CallApi;
+  Args: PP7Value;
+  ArgCount: PtrUInt;
+  Output: PP7Value
+): TP7Status; cdecl;
+var
+  Token: QWord;
+  CallbackError: String;
+begin
+  Token := 0;
+  try
+    if ArgCount <> 1 then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    EnsureApplication;
+    Result := RetainEventCallback(Api, PP7ValueArray(Args)^[0], Token);
+    if Result <> P7_STATUS_OK then
+      Exit;
+    InvokeVoidEvent(Api^.Runtime, Token);
+    ReleaseEvent(Api^.Runtime, Token);
+    CallbackError := ConsumeCallbackError;
+    if CallbackError = '' then
+      Result := P7_STATUS_OK
+    else
+      Result := ErrorStatus(Api, CallbackError);
+  except
+    on E: Exception do
+    begin
+      if Token <> 0 then
+        ReleaseEvent(Api^.Runtime, Token);
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function ApplicationQueue(
+  Userdata: Pointer;
+  Api: PP7CallApi;
+  Args: PP7Value;
+  ArgCount: PtrUInt;
+  Output: PP7Value
+): TP7Status; cdecl;
+var
+  Token: QWord;
+begin
+  Token := 0;
+  try
+    if ArgCount <> 1 then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    EnsureApplication;
+    Result := RetainEventCallback(Api, PP7ValueArray(Args)^[0], Token);
+    if Result <> P7_STATUS_OK then
+      Exit;
+    QueueVoidEvent(Api^.Runtime, Token);
+    Token := 0;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      if Token <> 0 then
+        ReleaseEvent(Api^.Runtime, Token);
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
 function ApplicationTerminate(
   Userdata: Pointer;
   Api: PP7CallApi;
@@ -476,7 +722,7 @@ begin
       Exit(P7_STATUS_INVALID_ARGUMENT);
     EnsureApplication;
     Application.CreateForm(TP7Form, Form);
-    Handle := AddObject(Form);
+    Handle := AddObject(Form, Api^.Runtime, UTF8String(FORM_TYPE_TAG));
     Result := Api^.MakeForeignOwned(
       Api,
       PByte(FORM_TYPE_TAG),
@@ -620,6 +866,7 @@ function FormClose(
   ): TP7Status; cdecl;
   var
     Form: TForm;
+    CallbackError: String;
   begin
     try
       if (ArgCount <> 1) or (Args = nil) then
@@ -627,12 +874,78 @@ function FormClose(
       Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
       if Result <> P7_STATUS_OK then Exit;
       Form.Close;
-      Result := P7_STATUS_OK;
+      CallbackError := ConsumeCallbackError;
+      if CallbackError = '' then
+        Result := P7_STATUS_OK
+      else
+        Result := ErrorStatus(Api, CallbackError);
     except
       on E: Exception do
         Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
     end;
   end;
+
+function FormSetOnClose(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+      ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+    var
+      Form: TForm;
+      Token: QWord;
+    begin
+      try
+        if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+        Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+        if Result <> P7_STATUS_OK then Exit;
+        Result := RetainEventCallback(Api, PP7ValueArray(Args)^[1], Token);
+        if Result <> P7_STATUS_OK then Exit;
+        TP7Form(Form).SetCloseCallback(Api^.Runtime, Token);
+        Result := P7_STATUS_OK;
+      except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+    end;
+
+    function FormClearOnClose(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+      ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+    var
+      Form: TForm;
+    begin
+      try
+        if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+        Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+        if Result <> P7_STATUS_OK then Exit;
+        TP7Form(Form).ClearCloseCallback;
+        Result := P7_STATUS_OK;
+      except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+    end;
+
+    function FormSetOnCloseQuery(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+      ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+    var
+      Form: TForm;
+      Token: QWord;
+    begin
+      try
+        if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+        Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+        if Result <> P7_STATUS_OK then Exit;
+        Result := RetainEventCallback(Api, PP7ValueArray(Args)^[1], Token);
+        if Result <> P7_STATUS_OK then Exit;
+        TP7Form(Form).SetCloseQueryCallback(Api^.Runtime, Token);
+        Result := P7_STATUS_OK;
+      except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+    end;
+
+    function FormClearOnCloseQuery(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+      ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+    var
+      Form: TForm;
+    begin
+      try
+        if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+        Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+        if Result <> P7_STATUS_OK then Exit;
+        TP7Form(Form).ClearCloseQueryCallback;
+        Result := P7_STATUS_OK;
+      except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+    end;
 
 function ButtonCreate(
     Userdata: Pointer;
@@ -651,9 +964,9 @@ function ButtonCreate(
         Exit(P7_STATUS_INVALID_ARGUMENT);
       Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
       if Result <> P7_STATUS_OK then Exit;
-      Button := TP7Button.Create(nil);
+      Button := TP7Button.Create(Form);
       Button.Parent := Form;
-      Result := MakeOwnedObject(Api, Button, BUTTON_TYPE_TAG, Output);
+      Result := MakeHandleObject(Api, Button, BUTTON_TYPE_TAG, Output);
     except
       on E: Exception do
       begin
@@ -710,6 +1023,23 @@ function ButtonCreate(
       Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Enabled);
       if Result <> P7_STATUS_OK then Exit;
       TP7Button(Instance).Enabled := Enabled;
+      Result := P7_STATUS_OK;
+    except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+  end;
+
+  function ButtonSetVisible(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var
+    Instance: TObject;
+    Visible: Boolean;
+  begin
+    try
+      if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := ReadObject(Api, PP7ValueArray(Args)^[0], BUTTON_TYPE_TAG, TP7Button, Instance);
+      if Result <> P7_STATUS_OK then Exit;
+      Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Visible);
+      if Result <> P7_STATUS_OK then Exit;
+      TP7Button(Instance).Visible := Visible;
       Result := P7_STATUS_OK;
     except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
   end;
@@ -777,7 +1107,7 @@ function ButtonCreate(
       if Result <> P7_STATUS_OK then Exit;
       Button := TP7Button(FindObject(Handle, TP7Button));
       Button.ClearCallback;
-      ReleaseObject(Handle);
+      ReleaseControlObject(Handle);
       Result := P7_STATUS_OK;
     except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
   end;
@@ -793,9 +1123,9 @@ function ButtonCreate(
       if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
       Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
       if Result <> P7_STATUS_OK then Exit;
-      LabelControl := TLabel.Create(nil);
+      LabelControl := TLabel.Create(Form);
       LabelControl.Parent := Form;
-      Result := MakeOwnedObject(Api, LabelControl, LABEL_TYPE_TAG, Output);
+      Result := MakeHandleObject(Api, LabelControl, LABEL_TYPE_TAG, Output);
     except on E: Exception do begin LabelControl.Free; Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end; end;
   end;
 
@@ -851,7 +1181,24 @@ function ButtonCreate(
       Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(LABEL_TYPE_TAG),
         StrLen(LABEL_TYPE_TAG), @Handle);
       if Result <> P7_STATUS_OK then Exit;
-      ReleaseObject(Handle);
+      ReleaseControlObject(Handle);
+      Result := P7_STATUS_OK;
+    except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+  end;
+
+  function LabelSetVisible(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var
+    Instance: TObject;
+    Visible: Boolean;
+  begin
+    try
+      if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := ReadObject(Api, PP7ValueArray(Args)^[0], LABEL_TYPE_TAG, TLabel, Instance);
+      if Result <> P7_STATUS_OK then Exit;
+      Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Visible);
+      if Result <> P7_STATUS_OK then Exit;
+      TLabel(Instance).Visible := Visible;
       Result := P7_STATUS_OK;
     except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
   end;
@@ -865,9 +1212,9 @@ function ButtonCreate(
       if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
       Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
       if Result <> P7_STATUS_OK then Exit;
-      EditControl := TP7Edit.Create(nil);
+      EditControl := TP7Edit.Create(Form);
       EditControl.Parent := Form;
-      Result := MakeOwnedObject(Api, EditControl, EDIT_TYPE_TAG, Output);
+      Result := MakeHandleObject(Api, EditControl, EDIT_TYPE_TAG, Output);
     except on E: Exception do begin EditControl.Free; Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end; end;
   end;
 
@@ -918,6 +1265,54 @@ function ButtonCreate(
     except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
   end;
 
+  function EditSetEnabled(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var
+    Instance: TObject;
+    Enabled: Boolean;
+  begin
+    try
+      if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := ReadObject(Api, PP7ValueArray(Args)^[0], EDIT_TYPE_TAG, TP7Edit, Instance);
+      if Result <> P7_STATUS_OK then Exit;
+      Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Enabled);
+      if Result <> P7_STATUS_OK then Exit;
+      TP7Edit(Instance).Enabled := Enabled;
+      Result := P7_STATUS_OK;
+    except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+  end;
+
+  function EditSetVisible(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var
+    Instance: TObject;
+    Visible: Boolean;
+  begin
+    try
+      if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := ReadObject(Api, PP7ValueArray(Args)^[0], EDIT_TYPE_TAG, TP7Edit, Instance);
+      if Result <> P7_STATUS_OK then Exit;
+      Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Visible);
+      if Result <> P7_STATUS_OK then Exit;
+      TP7Edit(Instance).Visible := Visible;
+      Result := P7_STATUS_OK;
+    except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+  end;
+
+  function EditSetFocus(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var
+    Instance: TObject;
+  begin
+    try
+      if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := ReadObject(Api, PP7ValueArray(Args)^[0], EDIT_TYPE_TAG, TP7Edit, Instance);
+      if Result <> P7_STATUS_OK then Exit;
+      TP7Edit(Instance).SetFocus;
+      Result := P7_STATUS_OK;
+    except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+  end;
+
   function EditSetOnChange(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
     ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
   var Instance: TObject; Token: QWord;
@@ -933,6 +1328,62 @@ function ButtonCreate(
     except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
   end;
 
+  function EditSetOnKeyPress(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var
+    Instance: TObject;
+    Token: QWord;
+  begin
+    try
+      if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := ReadObject(Api, PP7ValueArray(Args)^[0], EDIT_TYPE_TAG, TP7Edit, Instance);
+      if Result <> P7_STATUS_OK then Exit;
+      Result := RetainEventCallback(Api, PP7ValueArray(Args)^[1], Token);
+      if Result <> P7_STATUS_OK then Exit;
+      TP7Edit(Instance).SetKeyPressCallback(Api^.Runtime, Token);
+      Result := P7_STATUS_OK;
+    except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+  end;
+
+  function EditClearOnKeyPress(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var
+    Instance: TObject;
+  begin
+    try
+      if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := ReadObject(Api, PP7ValueArray(Args)^[0], EDIT_TYPE_TAG, TP7Edit, Instance);
+      if Result <> P7_STATUS_OK then Exit;
+      TP7Edit(Instance).ClearKeyPressCallback;
+      Result := P7_STATUS_OK;
+    except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+  end;
+
+  function EditSendKeyPress(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var
+    Instance: TObject;
+    KeyCode: Integer;
+    Key: Char;
+    CallbackError: String;
+  begin
+    try
+      if (ArgCount <> 2) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := ReadObject(Api, PP7ValueArray(Args)^[0], EDIT_TYPE_TAG, TP7Edit, Instance);
+      if Result <> P7_STATUS_OK then Exit;
+      Result := ReadInt(Api, PP7ValueArray(Args)^[1], KeyCode);
+      if Result <> P7_STATUS_OK then Exit;
+      if (KeyCode < 0) or (KeyCode > High(Byte)) then
+        Exit(ErrorStatus(Api, 'key code is outside the character range'));
+      Key := Char(KeyCode);
+      TP7Edit(Instance).TriggerKeyPress(Key);
+      CallbackError := ConsumeCallbackError;
+      if CallbackError <> '' then
+        Exit(ErrorStatus(Api, CallbackError));
+      Result := Api^.MakeInt(Api, Ord(Key), Output);
+    except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+  end;
+
   function EditFree(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
     ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
   var Handle: Int64; EditControl: TP7Edit;
@@ -944,7 +1395,8 @@ function ButtonCreate(
       if Result <> P7_STATUS_OK then Exit;
       EditControl := TP7Edit(FindObject(Handle, TP7Edit));
       EditControl.ClearCallback;
-      ReleaseObject(Handle);
+      EditControl.ClearKeyPressCallback;
+      ReleaseControlObject(Handle);
       Result := P7_STATUS_OK;
     except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
   end;
@@ -963,6 +1415,97 @@ function ButtonCreate(
     except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
   end;
 
+  function PanelCreate(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var
+    Form: TForm;
+    Panel: TPanel;
+  begin
+    Panel := nil;
+    try
+      if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+      if Result <> P7_STATUS_OK then Exit;
+      Panel := TPanel.Create(Form);
+      Panel.Parent := Form;
+      Result := MakeHandleObject(Api, Panel, PANEL_TYPE_TAG, Output);
+    except on E: Exception do begin Panel.Free; Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end; end;
+  end;
+
+  function PanelSetCaption(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var Instance: TObject; Caption: UTF8String;
+  begin
+    try
+      if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := ReadObject(Api, PP7ValueArray(Args)^[0], PANEL_TYPE_TAG, TPanel, Instance);
+      if Result <> P7_STATUS_OK then Exit;
+      Result := ReadString(Api, PP7ValueArray(Args)^[1], Caption);
+      if Result <> P7_STATUS_OK then Exit;
+      TPanel(Instance).Caption := String(Caption);
+      Result := P7_STATUS_OK;
+    except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+  end;
+
+  function PanelSetBounds(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var Instance: TObject; ALeft, ATop, AWidth, AHeight: Integer;
+  begin
+    try
+      if (ArgCount <> 5) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := ReadObject(Api, PP7ValueArray(Args)^[0], PANEL_TYPE_TAG, TPanel, Instance);
+      if Result <> P7_STATUS_OK then Exit;
+      Result := ReadBounds(Api, PP7ValueArray(Args), ALeft, ATop, AWidth, AHeight);
+      if Result <> P7_STATUS_OK then Exit;
+      TPanel(Instance).SetBounds(ALeft, ATop, AWidth, AHeight);
+      Result := P7_STATUS_OK;
+    except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+  end;
+
+  function PanelSetEnabled(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var Instance: TObject; Enabled: Boolean;
+  begin
+    try
+      if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := ReadObject(Api, PP7ValueArray(Args)^[0], PANEL_TYPE_TAG, TPanel, Instance);
+      if Result <> P7_STATUS_OK then Exit;
+      Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Enabled);
+      if Result <> P7_STATUS_OK then Exit;
+      TPanel(Instance).Enabled := Enabled;
+      Result := P7_STATUS_OK;
+    except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+  end;
+
+  function PanelSetVisible(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var Instance: TObject; Visible: Boolean;
+  begin
+    try
+      if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := ReadObject(Api, PP7ValueArray(Args)^[0], PANEL_TYPE_TAG, TPanel, Instance);
+      if Result <> P7_STATUS_OK then Exit;
+      Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Visible);
+      if Result <> P7_STATUS_OK then Exit;
+      TPanel(Instance).Visible := Visible;
+      Result := P7_STATUS_OK;
+    except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+  end;
+
+  function PanelFree(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+    ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+  var Handle: Int64;
+  begin
+    try
+      if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+      Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(PANEL_TYPE_TAG),
+        StrLen(PANEL_TYPE_TAG), @Handle);
+      if Result <> P7_STATUS_OK then Exit;
+      ReleaseControlObject(Handle);
+      Result := P7_STATUS_OK;
+    except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+  end;
+
 function FormFree(
   Userdata: Pointer;
   Api: PP7CallApi;
@@ -972,6 +1515,7 @@ function FormFree(
 ): TP7Status; cdecl;
 var
   Handle: Int64;
+  Form: TP7Form;
 begin
   try
     if (ArgCount <> 1) or (Args = nil) then
@@ -986,7 +1530,17 @@ begin
     );
     if Result <> P7_STATUS_OK then
       Exit;
-    ReleaseObject(Handle);
+    Form := TP7Form(FindObject(Handle, TP7Form));
+    Form.ClearCloseCallback;
+    Form.ClearCloseQueryCallback;
+    ClearComponentCallbacks(Form);
+    if Form.IsHandlingClose then
+    begin
+      Form := TP7Form(DetachObject(Handle));
+      Form.Release;
+    end
+    else
+      ReleaseObject(Handle);
     Result := P7_STATUS_OK;
   except
     on E: Exception do
@@ -1003,6 +1557,7 @@ function FormFinalize(
 ): TP7Status; cdecl;
 var
   Handle: Int64;
+  Instance: TObject;
 begin
   try
     if (ArgCount <> 2) or (Args = nil) then
@@ -1011,6 +1566,13 @@ begin
     Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
     if Result <> P7_STATUS_OK then
       Exit;
+    Instance := FindObjectOrNil(Handle, TP7Form);
+    if Instance <> nil then
+    begin
+      TP7Form(Instance).ClearCloseCallback;
+      TP7Form(Instance).ClearCloseQueryCallback;
+      ClearComponentCallbacks(TP7Form(Instance));
+    end;
     ReleaseObject(Handle);
     Result := P7_STATUS_OK;
   except
@@ -1053,10 +1615,21 @@ begin
     Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
     if Result <> P7_STATUS_OK then Exit;
     Instance := FindObjectOrNil(Handle, TP7Edit);
-    if Instance <> nil then TP7Edit(Instance).ClearCallback;
+    if Instance <> nil then
+    begin
+      TP7Edit(Instance).ClearCallback;
+      TP7Edit(Instance).ClearKeyPressCallback;
+    end;
+
     ReleaseObject(Handle);
     Result := P7_STATUS_OK;
   except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function PanelFinalize(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+begin
+  Result := LabelFinalize(Userdata, Api, Args, ArgCount, Output);
 end;
 
 function RegisterFunction(
@@ -1094,8 +1667,10 @@ begin
 
     ConfigureCallbacks(
       Api^.InvokeRootedCallback,
-      Api^.ReleaseRootedCallback
+      Api^.ReleaseRootedCallback,
+      Api^.InvokeRootedCallbackValues
     );
+    ConfigureObjectInvalidation(Api^.InvalidateForeignHandle);
     Result := RegisterGeneratedFunctions(Api);
   except
     Result := P7_STATUS_ERROR;

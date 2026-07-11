@@ -7,10 +7,10 @@ The native binding currently provides:
 - LCL application initialization.
 - Owning `TForm` foreign values backed by a generation-safe Pascal object table.
 - Forms with caption, bounds, show, close, and deterministic release.
-- `TButton`, `TLabel`, and `TEdit` controls with common text, bounds, and
-  enabled operations.
-- Persistent rooted `OnClick` and `OnChange` callbacks, including re-entrant
-  calls from a Protosept closure back into LCL.
+- Form-owned `TButton`, `TLabel`, `TEdit`, and `TPanel` controls with common
+  text, bounds, visibility, enabled, and focus operations.
+- Persistent rooted `OnClick`, `OnChange`, `OnClose`, `OnCloseQuery`, and
+  `OnKeyPress` callbacks, including re-entrant calls and mutable event results.
 - `examples/hello` is a separate executable package with a path dependency on
   the root library.
 - Both packages have Protosept tests that exercise the native extension.
@@ -36,14 +36,20 @@ lcl.free_label(label);
 lcl.free_form(form);
 ```
 
-Each current `box<lcl.*>` value owns an unowned LCL object. Controls are
-visually parented to their form but remain explicitly owned by Protosept.
-Event setters root closures until the event is replaced or the control is
-released. `button_clear_on_click` and `edit_clear_on_change` deterministically
-break subscriptions, including callbacks that capture their own controls. The
-Pascal object table validates slot generations on every call,
-so using a released object produces a native runtime trap instead of
-dereferencing stale memory.
+Hosts that own their event loop can call `lcl.process_messages()` instead of
+`lcl.run()`. `lcl.invoke(callback)` executes synchronously after verifying the
+designated UI thread, while `lcl.queue(callback)` retains the closure until the
+next LCL message-pump turn.
+
+`box<lcl.Form>` owns its form. Controls are returned as persistent non-owning
+`handle<lcl.*>` values. Their LCL owner is the form, and owner destruction
+invalidates every child handle before it can be used again.
+
+Event setters root closures until the event is replaced, explicitly cleared,
+or the owning form/control is released. Close-query and key-press callbacks
+return replacement values for Pascal `var` parameters. The Pascal object table
+validates slot generations on every call, so released or owner-destroyed
+objects produce a native runtime trap instead of dereferencing stale memory.
 
 The `protosept` directory is intentionally untracked and points to the local
 Protosept checkout used to build the CLI.
