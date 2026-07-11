@@ -13,8 +13,11 @@ The native binding currently provides:
 - Form-owned `TButton`, `TLabel`, `TEdit`, and `TPanel` controls with generated
   owner/parent, name, geometry, visibility, enabled, focus, tab-order, align,
   anchor, and color operations.
-- Persistent rooted `OnClick`, `OnChange`, `OnClose`, `OnCloseQuery`, and
-  `OnKeyPress` callbacks, including re-entrant calls and mutable event results.
+- Persistent rooted click, change, keyboard, mouse, focus, close, and
+  close-query callbacks, including typed sender handles, UTF-8 values,
+  enum/flag payloads, re-entrant calls, and mutable event results.
+- Rooted form `OnShow`, `OnHide`, `OnActivate`, `OnDeactivate`, and `OnResize`
+  lifecycle callbacks with synchronous error propagation.
 - `examples/hello` is a separate executable package with a path dependency on
   the root library.
 - Both packages have Protosept tests that exercise the native extension.
@@ -63,7 +66,15 @@ bits, negative extents, and tab orders produce explicit native errors.
 
 Event setters root closures until the event is replaced, explicitly cleared,
 or the owning form/control is released. Close-query and key-press callbacks
-return replacement values for Pascal `var` parameters. The Pascal object table
+return replacement values for Pascal `var` parameters. Mouse callbacks receive
+the sender, button, shift-state bits, and coordinates; focus and keyboard
+callbacks receive dynamically typed sender handles that can be checked and
+downcast.
+
+Synchronous event-trigger helpers return callback failures immediately.
+Failures from `lcl.queue()` or other asynchronous LCL dispatch are retained,
+terminate the active application loop, and are returned as a native error by
+the next `lcl.process_messages()` or `lcl.run()` call. The Pascal object table
 validates slot generations on every call, so released or owner-destroyed
 objects produce a native runtime trap instead of dereferencing stale memory.
 
@@ -78,8 +89,26 @@ Build the native extension first:
 ./scripts/build-native.sh
 ```
 
-`generator/bindings.json` is the binding metadata source. The build regenerates
-the Protosept API and Pascal registration table before compiling the library.
+`generator/bindings.json` is the binding metadata source. It records the
+Pascal and Protosept hierarchies independently, lifetime/parent policy,
+properties, enum/set mappings, event signatures, parameter direction, and
+platform/widgetset availability. The build validates this schema and
+regenerates the Protosept API and Pascal registration table before compiling
+the library.
+
+Common string, Boolean, integer, bounds, action, and rooted event
+installation/clearing callbacks are emitted into
+`native/pascal/generated/callbacks.inc`. Standard-control creation, release,
+and finalization are generated as well. Form lifecycle and event-trigger
+callbacks remain custom Pascal where they require re-entrancy or application
+ownership handling.
+
+Check metadata validation, deterministic output, and checked-in generator
+drift without building Lazarus:
+
+```bash
+./scripts/check-generated.sh
+```
 
 The build uses `~/lazarus`, `/usr/local/bin/fpc`, and the Cocoa widgetset. It
 passes `-ld_classic` because the current Apple linker rejects Objective-C

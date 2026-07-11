@@ -333,3 +333,263 @@ fn test_negative_tab_order_is_rejected() {
     lcl.free_button(button);
     lcl.free_form(form);
 }
+
+@test(expected_type = "string", expected_value = "shown")
+fn test_form_show_event_reenters_lcl() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    lcl.set_label_caption(label, "waiting");
+    lcl.form_on_show(form, () => {
+        lcl.set_label_caption(label, "shown");
+    });
+    lcl.show_form(form);
+    let result = lcl.label_caption(label);
+    lcl.form_clear_on_show(form);
+    lcl.close_form(form);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "hidden")
+fn test_form_hide_event_reenters_lcl() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    lcl.set_label_caption(label, "waiting");
+    lcl.form_on_hide(form, () => {
+        lcl.set_label_caption(label, "hidden");
+    });
+    lcl.show_form(form);
+    lcl.close_form(form);
+    let result = lcl.label_caption(label);
+    lcl.form_clear_on_hide(form);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "resized")
+fn test_form_resize_event_reenters_lcl() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    lcl.set_label_caption(label, "waiting");
+    lcl.show_form(form);
+    lcl.form_on_resize(form, () => {
+        lcl.set_label_caption(label, "resized");
+    });
+    lcl.set_form_bounds(form, 10, 10, 500, 400);
+    let result = lcl.label_caption(label);
+    lcl.form_clear_on_resize(form);
+    lcl.close_form(form);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(runtime_error = "Protosept event callback failed")
+fn test_form_show_callback_error_is_propagated() {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let dead_label = lcl.new_label(form);
+    lcl.free_label(dead_label);
+    lcl.form_on_show(form, () => {
+        let ignored = lcl.label_caption(dead_label);
+    });
+    lcl.show_form(form);
+    lcl.free_form(form);
+}
+
+@test(expected_type = "int", expected_value = "1")
+fn test_form_resize_can_release_form_safely() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.show_form(form);
+    lcl.form_on_resize(form, () => {
+        lcl.free_form(form);
+    });
+    lcl.set_form_bounds(form, 10, 10, 500, 400);
+    lcl.process_messages();
+    1
+}
+
+@test(expected_type = "int", expected_value = "1")
+fn test_form_activation_events_can_be_installed_and_cleared() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.form_on_activate(form, () => {});
+    lcl.form_on_deactivate(form, () => {});
+    lcl.form_clear_on_activate(form);
+    lcl.form_clear_on_deactivate(form);
+    lcl.free_form(form);
+    1
+}
+
+@test(expected_type = "string", expected_value = "mouse")
+fn test_mouse_event_passes_sender_enum_flags_and_coordinates() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let button = lcl.new_button(form);
+    lcl.button_on_mouse_down(button, (
+        sender: handle<lcl.Control>,
+        mouse_button: int,
+        shift: int,
+        x: int,
+        y: int
+    ) => {
+        let actual = sender as handle<lcl.Button>;
+        if mouse_button == lcl.MouseButton.Right.value() as int
+            && shift == 5
+            && x == 12
+            && y == 34 {
+            lcl.set_component_name(actual, "mouse");
+        }
+    });
+    lcl.button_send_mouse_down(
+        button,
+        lcl.MouseButton.Right,
+        lcl.ShiftState.Shift | lcl.ShiftState.Ctrl,
+        12,
+        34
+    );
+    let result = lcl.component_name(button);
+    lcl.button_clear_on_mouse_down(button);
+    lcl.free_button(button);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "int", expected_value = "66")
+fn test_key_down_event_can_replace_key_and_receives_sender() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let edit = lcl.new_edit(form);
+    lcl.edit_on_key_down(edit, (
+        sender: handle<lcl.Control>,
+        key: int,
+        shift: int
+    ) => {
+        let actual = sender as handle<lcl.Edit>;
+        lcl.set_edit_text(actual, "keydown");
+        if key == 65 && shift == lcl.ShiftState.Alt.bits() as int {
+            66
+        } else {
+            key
+        }
+    });
+    let result = lcl.edit_send_key_down(edit, 65, lcl.ShiftState.Alt);
+    lcl.edit_clear_on_key_down(edit);
+    lcl.free_edit(edit);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "你")
+fn test_utf8_key_press_passes_string_value() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    let edit = lcl.new_edit(form);
+    lcl.edit_on_utf8_key_press(edit, (sender: handle<lcl.Control>, key: string) => {
+        let actual = sender as handle<lcl.Edit>;
+        lcl.set_edit_text(actual, key);
+        lcl.set_label_caption(label, key);
+    });
+    let result = lcl.edit_send_utf8_key_press(edit, "你");
+    lcl.edit_clear_on_utf8_key_press(edit);
+    lcl.free_edit(edit);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "edit-exit")
+fn test_control_focus_events_pass_typed_senders() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    let button = lcl.new_button(form);
+    let edit = lcl.new_edit(form);
+    lcl.button_on_enter(button, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.Button>;
+        lcl.set_button_caption(actual, "entered");
+        lcl.set_label_caption(label, "button-enter");
+    });
+    lcl.edit_on_exit(edit, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.Edit>;
+        lcl.set_edit_text(actual, "exited");
+        lcl.set_label_caption(label, "edit-exit");
+    });
+    lcl.button_send_enter(button);
+    lcl.edit_send_exit(edit);
+    let result = lcl.label_caption(label);
+    lcl.button_clear_on_enter(button);
+    lcl.edit_clear_on_exit(edit);
+    lcl.free_edit(edit);
+    lcl.free_button(button);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(runtime_error = "Protosept event callback failed")
+fn test_queued_callback_error_surfaces_from_message_pump() {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let dead_label = lcl.new_label(form);
+    lcl.free_label(dead_label);
+    lcl.queue(() => {
+        let ignored = lcl.label_caption(dead_label);
+    });
+    lcl.process_messages();
+    lcl.free_form(form);
+}
+
+@test(expected_type = "int", expected_value = "1")
+fn test_mouse_event_can_release_button_safely() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let button = lcl.new_button(form);
+    lcl.button_on_mouse_down(button, (
+        sender: handle<lcl.Control>,
+        mouse_button: int,
+        shift: int,
+        x: int,
+        y: int
+    ) => {
+        let actual = sender as handle<lcl.Button>;
+        lcl.free_button(actual);
+    });
+    lcl.button_send_mouse_down(
+        button,
+        lcl.MouseButton.Left,
+        lcl.ShiftState.None,
+        0,
+        0
+    );
+    lcl.process_messages();
+    lcl.free_form(form);
+    1
+}
+
+@test(expected_type = "int", expected_value = "1")
+fn test_key_event_can_release_edit_safely() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let edit = lcl.new_edit(form);
+    lcl.edit_on_key_down(edit, (
+        sender: handle<lcl.Control>,
+        key: int,
+        shift: int
+    ) => {
+        let actual = sender as handle<lcl.Edit>;
+        lcl.free_edit(actual);
+        key
+    });
+    let ignored = lcl.edit_send_key_down(edit, 65, lcl.ShiftState.None);
+    lcl.process_messages();
+    lcl.free_form(form);
+    1
+}
