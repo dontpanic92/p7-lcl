@@ -4,5 +4,5 @@ version = 1
 name = "lcl"
 version = "0.1.0"
 source = "path+."
-checksum = "bc16d359c48a446c0ee0e4e238fe519b9b2cd775ae828169ae4d0881c861d808"
+checksum = "d094e1745732cd1fe92dddea7a2f0fc24b4972e75f610ee198d140ee1fc281a0"
 dependencies = []

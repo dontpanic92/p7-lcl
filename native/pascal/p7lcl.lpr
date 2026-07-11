@@ -17,6 +17,9 @@ uses
   Graphics,
   StdCtrls,
   ExtCtrls,
+  ComCtrls,
+  Dialogs,
+  Menus,
   Classes,
   {$IFDEF LCLCOCOA}
   CocoaAll,
@@ -46,9 +49,24 @@ const
   WIN_CONTROL_TYPE_TAG: PAnsiChar = 'lcl.TWinControl';
   FORM_TYPE_TAG: PAnsiChar = 'lcl.TForm';
   BUTTON_TYPE_TAG: PAnsiChar = 'lcl.TButton';
+  CHECKBOX_TYPE_TAG: PAnsiChar = 'lcl.TCheckBox';
+  RADIO_BUTTON_TYPE_TAG: PAnsiChar = 'lcl.TRadioButton';
   LABEL_TYPE_TAG: PAnsiChar = 'lcl.TLabel';
   EDIT_TYPE_TAG: PAnsiChar = 'lcl.TEdit';
+  MEMO_TYPE_TAG: PAnsiChar = 'lcl.TMemo';
+  LIST_BOX_TYPE_TAG: PAnsiChar = 'lcl.TListBox';
+  COMBO_BOX_TYPE_TAG: PAnsiChar = 'lcl.TComboBox';
   PANEL_TYPE_TAG: PAnsiChar = 'lcl.TPanel';
+  IMAGE_TYPE_TAG: PAnsiChar = 'lcl.TImage';
+  TIMER_TYPE_TAG: PAnsiChar = 'lcl.TTimer';
+  MAIN_MENU_TYPE_TAG: PAnsiChar = 'lcl.TMainMenu';
+  MENU_ITEM_TYPE_TAG: PAnsiChar = 'lcl.TMenuItem';
+  TOOL_BAR_TYPE_TAG: PAnsiChar = 'lcl.TToolBar';
+  TOOL_BUTTON_TYPE_TAG: PAnsiChar = 'lcl.TToolButton';
+  STATUS_BAR_TYPE_TAG: PAnsiChar = 'lcl.TStatusBar';
+  OPEN_DIALOG_TYPE_TAG: PAnsiChar = 'lcl.TOpenDialog';
+  SAVE_DIALOG_TYPE_TAG: PAnsiChar = 'lcl.TSaveDialog';
+  GROUP_BOX_TYPE_TAG: PAnsiChar = 'lcl.TGroupBox';
 
 type
   TP7Status = LongWord;
@@ -728,6 +746,22 @@ var
 begin
   if Component is TP7Button then
     TP7Button(Component).ClearAllCallbacks
+  else if Component is TP7CheckBox then
+    TP7CheckBox(Component).ClearChangeCallback
+  else if Component is TP7RadioButton then
+    TP7RadioButton(Component).ClearChangeCallback
+  else if Component is TP7Memo then
+    TP7Memo(Component).ClearChangeCallback
+  else if Component is TP7ListBox then
+    TP7ListBox(Component).ClearSelectionCallback
+  else if Component is TP7ComboBox then
+    TP7ComboBox(Component).ClearChangeCallback
+  else if Component is TP7Timer then
+    TP7Timer(Component).ClearTimerCallback
+  else if Component is TP7MenuItem then
+    TP7MenuItem(Component).ClearClickCallback
+  else if Component is TP7ToolButton then
+    TP7ToolButton(Component).ClearClickCallback
   else if Component is TP7Edit then
     TP7Edit(Component).ClearAllCallbacks;
   for Index := 0 to Component.ComponentCount - 1 do
@@ -2602,6 +2636,592 @@ begin
     on E: Exception do
       Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
   end;
+end;
+
+function CheckBoxClick(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], CHECKBOX_TYPE_TAG,
+      TP7CheckBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7CheckBox(Instance).TriggerClick;
+    Result := FinishSynchronousEvent(Api);
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function RadioButtonClick(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], RADIO_BUTTON_TYPE_TAG,
+      TP7RadioButton, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7RadioButton(Instance).TriggerClick;
+    Result := FinishSynchronousEvent(Api);
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function CollectionItems(Instance: TObject): TStrings;
+begin
+  if Instance is TP7ListBox then
+    Result := TP7ListBox(Instance).Items
+  else if Instance is TP7ComboBox then
+    Result := TP7ComboBox(Instance).Items
+  else
+    raise Exception.Create('control does not expose indexed string items');
+end;
+
+function CollectionItemCount(Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value; TypeTag: PAnsiChar;
+  ExpectedClass: TClass): TP7Status;
+var
+  Instance: TObject;
+begin
+  if (ArgCount <> 1) or (Args = nil) or (Output = nil) then
+    Exit(P7_STATUS_INVALID_ARGUMENT);
+  Result := ReadObject(Api, PP7ValueArray(Args)^[0], TypeTag, ExpectedClass, Instance);
+  if Result <> P7_STATUS_OK then Exit;
+  Result := Api^.MakeInt(Api, CollectionItems(Instance).Count, Output);
+end;
+
+function CollectionItem(Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value; TypeTag: PAnsiChar;
+  ExpectedClass: TClass): TP7Status;
+var
+  Instance: TObject;
+  Index: Integer;
+  Value: UTF8String;
+  Items: TStrings;
+begin
+  if (ArgCount <> 2) or (Args = nil) or (Output = nil) then
+    Exit(P7_STATUS_INVALID_ARGUMENT);
+  Result := ReadObject(Api, PP7ValueArray(Args)^[0], TypeTag, ExpectedClass, Instance);
+  if Result <> P7_STATUS_OK then Exit;
+  Result := ReadInt(Api, PP7ValueArray(Args)^[1], Index);
+  if Result <> P7_STATUS_OK then Exit;
+  Items := CollectionItems(Instance);
+  if (Index < 0) or (Index >= Items.Count) then
+    Exit(ErrorStatus(Api, 'item index is out of range'));
+  Value := UTF8String(Items[Index]);
+  Result := Api^.MakeString(Api, PByte(PAnsiChar(Value)), Length(Value), Output);
+end;
+
+function CollectionAddItem(Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value; TypeTag: PAnsiChar;
+  ExpectedClass: TClass): TP7Status;
+var
+  Instance: TObject;
+  Value: UTF8String;
+  Index: Integer;
+begin
+  if (ArgCount <> 2) or (Args = nil) or (Output = nil) then
+    Exit(P7_STATUS_INVALID_ARGUMENT);
+  Result := ReadObject(Api, PP7ValueArray(Args)^[0], TypeTag, ExpectedClass, Instance);
+  if Result <> P7_STATUS_OK then Exit;
+  Result := ReadString(Api, PP7ValueArray(Args)^[1], Value);
+  if Result <> P7_STATUS_OK then Exit;
+  Index := CollectionItems(Instance).Add(String(Value));
+  Result := Api^.MakeInt(Api, Index, Output);
+end;
+
+function CollectionSetItem(Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; TypeTag: PAnsiChar; ExpectedClass: TClass): TP7Status;
+var
+  Instance: TObject;
+  Index: Integer;
+  Value: UTF8String;
+  Items: TStrings;
+begin
+  if (ArgCount <> 3) or (Args = nil) then
+    Exit(P7_STATUS_INVALID_ARGUMENT);
+  Result := ReadObject(Api, PP7ValueArray(Args)^[0], TypeTag, ExpectedClass, Instance);
+  if Result <> P7_STATUS_OK then Exit;
+  Result := ReadInt(Api, PP7ValueArray(Args)^[1], Index);
+  if Result <> P7_STATUS_OK then Exit;
+  Result := ReadString(Api, PP7ValueArray(Args)^[2], Value);
+  if Result <> P7_STATUS_OK then Exit;
+  Items := CollectionItems(Instance);
+  if (Index < 0) or (Index >= Items.Count) then
+    Exit(ErrorStatus(Api, 'item index is out of range'));
+  Items[Index] := String(Value);
+  Result := P7_STATUS_OK;
+end;
+
+function CollectionDeleteItem(Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; TypeTag: PAnsiChar; ExpectedClass: TClass): TP7Status;
+var
+  Instance: TObject;
+  Index: Integer;
+  Items: TStrings;
+begin
+  if (ArgCount <> 2) or (Args = nil) then
+    Exit(P7_STATUS_INVALID_ARGUMENT);
+  Result := ReadObject(Api, PP7ValueArray(Args)^[0], TypeTag, ExpectedClass, Instance);
+  if Result <> P7_STATUS_OK then Exit;
+  Result := ReadInt(Api, PP7ValueArray(Args)^[1], Index);
+  if Result <> P7_STATUS_OK then Exit;
+  Items := CollectionItems(Instance);
+  if (Index < 0) or (Index >= Items.Count) then
+    Exit(ErrorStatus(Api, 'item index is out of range'));
+  Items.Delete(Index);
+  Result := P7_STATUS_OK;
+end;
+
+function CollectionClearItems(Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; TypeTag: PAnsiChar; ExpectedClass: TClass): TP7Status;
+var
+  Instance: TObject;
+begin
+  if (ArgCount <> 1) or (Args = nil) then
+    Exit(P7_STATUS_INVALID_ARGUMENT);
+  Result := ReadObject(Api, PP7ValueArray(Args)^[0], TypeTag, ExpectedClass, Instance);
+  if Result <> P7_STATUS_OK then Exit;
+  CollectionItems(Instance).Clear;
+  Result := P7_STATUS_OK;
+end;
+
+function MemoTriggerChange(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MEMO_TYPE_TAG, TP7Memo, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7Memo(Instance).TriggerChange;
+    Result := FinishSynchronousEvent(Api);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function ListBoxItemCount(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+begin Result := CollectionItemCount(Api, Args, ArgCount, Output, LIST_BOX_TYPE_TAG, TP7ListBox); end;
+function ListBoxItem(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+begin Result := CollectionItem(Api, Args, ArgCount, Output, LIST_BOX_TYPE_TAG, TP7ListBox); end;
+function ListBoxAddItem(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+begin Result := CollectionAddItem(Api, Args, ArgCount, Output, LIST_BOX_TYPE_TAG, TP7ListBox); end;
+function ListBoxSetItem(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+begin Result := CollectionSetItem(Api, Args, ArgCount, LIST_BOX_TYPE_TAG, TP7ListBox); end;
+function ListBoxDeleteItem(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+begin Result := CollectionDeleteItem(Api, Args, ArgCount, LIST_BOX_TYPE_TAG, TP7ListBox); end;
+function ListBoxClearItems(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+begin Result := CollectionClearItems(Api, Args, ArgCount, LIST_BOX_TYPE_TAG, TP7ListBox); end;
+
+function ListBoxItemIndex(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], LIST_BOX_TYPE_TAG, TP7ListBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := Api^.MakeInt(Api, TP7ListBox(Instance).ItemIndex, Output);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function ListBoxSelectIndex(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject; Index: Integer;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], LIST_BOX_TYPE_TAG, TP7ListBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadInt(Api, PP7ValueArray(Args)^[1], Index);
+    if Result <> P7_STATUS_OK then Exit;
+    if (Index < -1) or (Index >= TP7ListBox(Instance).Items.Count) then
+      Exit(ErrorStatus(Api, 'item index is out of range'));
+    TP7ListBox(Instance).SelectIndex(Index);
+    Result := FinishSynchronousEvent(Api);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function ComboBoxItemCount(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+begin Result := CollectionItemCount(Api, Args, ArgCount, Output, COMBO_BOX_TYPE_TAG, TP7ComboBox); end;
+function ComboBoxItem(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+begin Result := CollectionItem(Api, Args, ArgCount, Output, COMBO_BOX_TYPE_TAG, TP7ComboBox); end;
+function ComboBoxAddItem(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+begin Result := CollectionAddItem(Api, Args, ArgCount, Output, COMBO_BOX_TYPE_TAG, TP7ComboBox); end;
+function ComboBoxSetItem(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+begin Result := CollectionSetItem(Api, Args, ArgCount, COMBO_BOX_TYPE_TAG, TP7ComboBox); end;
+function ComboBoxDeleteItem(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+begin Result := CollectionDeleteItem(Api, Args, ArgCount, COMBO_BOX_TYPE_TAG, TP7ComboBox); end;
+function ComboBoxClearItems(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+begin Result := CollectionClearItems(Api, Args, ArgCount, COMBO_BOX_TYPE_TAG, TP7ComboBox); end;
+
+function ComboBoxItemIndex(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], COMBO_BOX_TYPE_TAG, TP7ComboBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := Api^.MakeInt(Api, TP7ComboBox(Instance).ItemIndex, Output);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function ComboBoxSelectIndex(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject; Index: Integer;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], COMBO_BOX_TYPE_TAG, TP7ComboBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadInt(Api, PP7ValueArray(Args)^[1], Index);
+    if Result <> P7_STATUS_OK then Exit;
+    if (Index < -1) or (Index >= TP7ComboBox(Instance).Items.Count) then
+      Exit(ErrorStatus(Api, 'item index is out of range'));
+    TP7ComboBox(Instance).SelectIndex(Index);
+    Result := FinishSynchronousEvent(Api);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function ImageLoadFromFile(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  FileName: UTF8String;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], IMAGE_TYPE_TAG, TImage, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadString(Api, PP7ValueArray(Args)^[1], FileName);
+    if Result <> P7_STATUS_OK then Exit;
+    TImage(Instance).Picture.LoadFromFile(String(FileName));
+    Result := P7_STATUS_OK;
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function ImageClear(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], IMAGE_TYPE_TAG, TImage, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TImage(Instance).Picture.Clear;
+    Result := P7_STATUS_OK;
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function ImagePictureWidth(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], IMAGE_TYPE_TAG, TImage, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := Api^.MakeInt(Api, TImage(Instance).Picture.Width, Output);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function ImagePictureHeight(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], IMAGE_TYPE_TAG, TImage, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := Api^.MakeInt(Api, TImage(Instance).Picture.Height, Output);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function TimerCreate(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Form: TForm;
+  Timer: TP7Timer;
+begin
+  Timer := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Timer := TP7Timer.Create(Form);
+    Result := MakeHandleObject(Api, Timer, TIMER_TYPE_TAG, Output);
+    if Result <> P7_STATUS_OK then Timer.Free;
+  except
+    on E: Exception do
+    begin
+      Timer.Free;
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function TimerSetInterval(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject; Interval: Integer;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TIMER_TYPE_TAG, TP7Timer, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadInt(Api, PP7ValueArray(Args)^[1], Interval);
+    if Result <> P7_STATUS_OK then Exit;
+    if Interval <= 0 then Exit(ErrorStatus(Api, 'timer interval must be positive'));
+    TP7Timer(Instance).Interval := Cardinal(Interval);
+    Result := P7_STATUS_OK;
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function TimerInterval(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TIMER_TYPE_TAG, TP7Timer, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := Api^.MakeInt(Api, TP7Timer(Instance).Interval, Output);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function TimerTrigger(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TIMER_TYPE_TAG, TP7Timer, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7Timer(Instance).TriggerTimer;
+    Result := FinishSynchronousEvent(Api);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function MainMenuCreate(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Form: TForm; Menu: TMainMenu;
+begin
+  Menu := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Menu := TMainMenu.Create(Form);
+    Result := MakeHandleObject(Api, Menu, MAIN_MENU_TYPE_TAG, Output);
+    if Result <> P7_STATUS_OK then Menu.Free;
+  except on E: Exception do begin Menu.Free; Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end; end;
+end;
+
+function FormSetMainMenu(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Form: TForm; Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadObject(Api, PP7ValueArray(Args)^[1], MAIN_MENU_TYPE_TAG, TMainMenu, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Form.Menu := TMainMenu(Instance);
+    Result := P7_STATUS_OK;
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function MenuItemCreate(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject; Item: TP7MenuItem;
+begin
+  Item := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MAIN_MENU_TYPE_TAG, TMainMenu, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Item := TP7MenuItem.Create(TMainMenu(Instance));
+    TMainMenu(Instance).Items.Add(Item);
+    Result := MakeHandleObject(Api, Item, MENU_ITEM_TYPE_TAG, Output);
+    if Result <> P7_STATUS_OK then Item.Free;
+  except on E: Exception do begin Item.Free; Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end; end;
+end;
+
+function SubMenuItemCreate(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject; Item: TP7MenuItem; Owner: TComponent;
+begin
+  Item := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MENU_ITEM_TYPE_TAG, TP7MenuItem, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Owner := TComponent(Instance).Owner;
+    Item := TP7MenuItem.Create(Owner);
+    TP7MenuItem(Instance).Add(Item);
+    Result := MakeHandleObject(Api, Item, MENU_ITEM_TYPE_TAG, Output);
+    if Result <> P7_STATUS_OK then Item.Free;
+  except on E: Exception do begin Item.Free; Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end; end;
+end;
+
+function MenuItemCount(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MENU_ITEM_TYPE_TAG, TP7MenuItem, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := Api^.MakeInt(Api, TP7MenuItem(Instance).Count, Output);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function MenuItemChild(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject; Index: Integer; Child: TMenuItem;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MENU_ITEM_TYPE_TAG, TP7MenuItem, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadInt(Api, PP7ValueArray(Args)^[1], Index);
+    if Result <> P7_STATUS_OK then Exit;
+    if (Index < 0) or (Index >= TP7MenuItem(Instance).Count) then
+      Exit(ErrorStatus(Api, 'menu item index is out of range'));
+    Child := TP7MenuItem(Instance).Items[Index];
+    Result := MakeBorrowedObject(Api, Child, MENU_ITEM_TYPE_TAG, Output);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function MenuItemClick(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MENU_ITEM_TYPE_TAG, TP7MenuItem, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7MenuItem(Instance).TriggerClick;
+    Result := FinishSynchronousEvent(Api);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function ToolButtonCreate(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject; Button: TP7ToolButton;
+begin
+  Button := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TOOL_BAR_TYPE_TAG, TToolBar, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Button := TP7ToolButton.Create(TToolBar(Instance));
+    Button.Parent := TToolBar(Instance);
+    Result := MakeHandleObject(Api, Button, TOOL_BUTTON_TYPE_TAG, Output);
+    if Result <> P7_STATUS_OK then Button.Free;
+  except on E: Exception do begin Button.Free; Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end; end;
+end;
+
+function ToolBarButtonCount(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TOOL_BAR_TYPE_TAG, TToolBar, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := Api^.MakeInt(Api, TToolBar(Instance).ButtonCount, Output);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function ToolButtonClick(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TOOL_BUTTON_TYPE_TAG, TP7ToolButton, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7ToolButton(Instance).TriggerClick;
+    Result := FinishSynchronousEvent(Api);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function OpenDialogCreate(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Form: TForm; Dialog: TOpenDialog;
+begin
+  Dialog := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Dialog := TOpenDialog.Create(Form);
+    Result := MakeHandleObject(Api, Dialog, OPEN_DIALOG_TYPE_TAG, Output);
+    if Result <> P7_STATUS_OK then Dialog.Free;
+  except on E: Exception do begin Dialog.Free; Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end; end;
+end;
+
+function SaveDialogCreate(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Form: TForm; Dialog: TSaveDialog;
+begin
+  Dialog := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Dialog := TSaveDialog.Create(Form);
+    Result := MakeHandleObject(Api, Dialog, SAVE_DIALOG_TYPE_TAG, Output);
+    if Result <> P7_STATUS_OK then Dialog.Free;
+  except on E: Exception do begin Dialog.Free; Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end; end;
+end;
+
+function OpenDialogExecute(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], OPEN_DIALOG_TYPE_TAG, TOpenDialog, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := MakeBoolean(Api, TOpenDialog(Instance).Execute, Output);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
+end;
+
+function SaveDialogExecute(Userdata: Pointer; Api: PP7CallApi; Args: PP7Value;
+  ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], SAVE_DIALOG_TYPE_TAG, TSaveDialog, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := MakeBoolean(Api, TSaveDialog(Instance).Execute, Output);
+  except on E: Exception do Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message); end;
 end;
 
 {$I generated/callbacks.inc}

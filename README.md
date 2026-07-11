@@ -9,13 +9,23 @@ The native binding currently provides:
   `TControl` → `TWinControl`, with forms and standard controls under their
   real bases.
 - Owning `TForm` foreign values backed by a generation-safe Pascal object table.
-- Forms with caption, bounds, show, close, and deterministic release.
-- Form-owned `TButton`, `TLabel`, `TEdit`, and `TPanel` controls with generated
-  owner/parent, name, geometry, visibility, enabled, focus, tab-order, align,
-  anchor, and color operations.
+- Forms with caption, bounds, main-menu attachment, show, close, and
+  deterministic release.
+- Form-owned buttons, checkbox/radio controls, labels, edits, memos, list and
+  combo boxes, panels, group boxes, images, toolbars, status bars, file
+  dialogs, menus, and timers.
+- Generated owner/parent, name, geometry, visibility, enabled, focus,
+  tab-order, align, anchor, and color operations for applicable controls.
 - Persistent rooted click, change, keyboard, mouse, focus, close, and
   close-query callbacks, including typed sender handles, UTF-8 values,
   enum/flag payloads, re-entrant calls, and mutable event results.
+- Checkbox and radio-button caption/state APIs with sender-aware change events
+  and deterministic click helpers.
+- Indexed string APIs for memo/list/combo data keep LCL-managed `TStrings`
+  collections behind the native boundary.
+- Menu hierarchy and state APIs, toolbar buttons, simple status-bar text,
+  open/save dialog properties and execution, image loading/properties, and
+  deterministic timer callbacks.
 - Rooted form `OnShow`, `OnHide`, `OnActivate`, `OnDeactivate`, and `OnResize`
   lifecycle callbacks with synchronous error propagation.
 - `examples/hello` is a separate executable package with a path dependency on
@@ -86,6 +96,10 @@ terminate the active application loop, and are returned as a native error by
 the next `lcl.process_messages()` or `lcl.run()` call. The Pascal object table
 validates slot generations on every call, so released or owner-destroyed
 objects produce a native runtime trap instead of dereferencing stale memory.
+
+Managed and platform-dependent Pascal records remain opaque. The current API
+does not expose a point or rectangle record requiring a C-layout adapter;
+coordinates and bounds cross the ABI as fixed-width scalar arguments.
 
 `lcl.application_on_exception(callback)` roots a
 `fn(string, string)` callback receiving the exception class and message.

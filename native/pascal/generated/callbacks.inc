@@ -609,6 +609,406 @@ begin
   end;
 end;
 
+function GeneratedCheckBoxSetCaption(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], CHECKBOX_TYPE_TAG, TP7CheckBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadString(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7CheckBox(Instance).Caption := String(Value);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedCheckBoxCaption(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], CHECKBOX_TYPE_TAG, TP7CheckBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Value := UTF8String(TP7CheckBox(Instance).Caption);
+    Result := Api^.MakeString(Api, PByte(PAnsiChar(Value)), Length(Value), Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedCheckBoxSetChecked(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: Boolean;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], CHECKBOX_TYPE_TAG, TP7CheckBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7CheckBox(Instance).Checked := Value;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedCheckBoxChecked(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], CHECKBOX_TYPE_TAG, TP7CheckBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := MakeBoolean(Api, TP7CheckBox(Instance).Checked, Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedCheckBoxSetOnChange(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Token: QWord;
+begin
+  Token := 0;
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], CHECKBOX_TYPE_TAG, TP7CheckBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := RetainEventCallback(Api, PP7ValueArray(Args)^[1], Token);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7CheckBox(Instance).SetChangeCallback(Api^.Runtime, Token);
+    Token := 0;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      if Token <> 0 then
+        ReleaseEvent(Api^.Runtime, Token);
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedCheckBoxClearOnChange(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], CHECKBOX_TYPE_TAG, TP7CheckBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7CheckBox(Instance).ClearChangeCallback;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedCheckBoxCreate(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Form: TForm;
+  Instance: TP7CheckBox;
+begin
+  Instance := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := TP7CheckBox.Create(Form);
+    Instance.Parent := Form;
+    Result := MakeHandleObject(Api, Instance, CHECKBOX_TYPE_TAG, Output);
+    if Result = P7_STATUS_OK then Instance := nil;
+  except
+    on E: Exception do
+    begin
+      Instance.Free;
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedCheckBoxFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(CHECKBOX_TYPE_TAG), StrLen(CHECKBOX_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TP7CheckBox);
+    if Instance <> nil then
+    begin
+      TP7CheckBox(Instance).ClearChangeCallback;
+    end;
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedCheckBoxFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TP7CheckBox);
+    if Instance <> nil then
+    begin
+      TP7CheckBox(Instance).ClearChangeCallback;
+    end;
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedRadioButtonSetCaption(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], RADIO_BUTTON_TYPE_TAG, TP7RadioButton, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadString(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7RadioButton(Instance).Caption := String(Value);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedRadioButtonCaption(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], RADIO_BUTTON_TYPE_TAG, TP7RadioButton, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Value := UTF8String(TP7RadioButton(Instance).Caption);
+    Result := Api^.MakeString(Api, PByte(PAnsiChar(Value)), Length(Value), Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedRadioButtonSetChecked(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: Boolean;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], RADIO_BUTTON_TYPE_TAG, TP7RadioButton, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7RadioButton(Instance).Checked := Value;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedRadioButtonChecked(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], RADIO_BUTTON_TYPE_TAG, TP7RadioButton, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := MakeBoolean(Api, TP7RadioButton(Instance).Checked, Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedRadioButtonSetOnChange(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Token: QWord;
+begin
+  Token := 0;
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], RADIO_BUTTON_TYPE_TAG, TP7RadioButton, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := RetainEventCallback(Api, PP7ValueArray(Args)^[1], Token);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7RadioButton(Instance).SetChangeCallback(Api^.Runtime, Token);
+    Token := 0;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      if Token <> 0 then
+        ReleaseEvent(Api^.Runtime, Token);
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedRadioButtonClearOnChange(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], RADIO_BUTTON_TYPE_TAG, TP7RadioButton, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7RadioButton(Instance).ClearChangeCallback;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedRadioButtonCreate(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Form: TForm;
+  Instance: TP7RadioButton;
+begin
+  Instance := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := TP7RadioButton.Create(Form);
+    Instance.Parent := Form;
+    Result := MakeHandleObject(Api, Instance, RADIO_BUTTON_TYPE_TAG, Output);
+    if Result = P7_STATUS_OK then Instance := nil;
+  except
+    on E: Exception do
+    begin
+      Instance.Free;
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedRadioButtonFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(RADIO_BUTTON_TYPE_TAG), StrLen(RADIO_BUTTON_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TP7RadioButton);
+    if Instance <> nil then
+    begin
+      TP7RadioButton(Instance).ClearChangeCallback;
+    end;
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedRadioButtonFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TP7RadioButton);
+    if Instance <> nil then
+    begin
+      TP7RadioButton(Instance).ClearChangeCallback;
+    end;
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
 function GeneratedLabelSetCaption(Userdata: Pointer; Api: PP7CallApi;
   Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
 var
@@ -1208,6 +1608,402 @@ begin
   end;
 end;
 
+function GeneratedMemoSetText(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MEMO_TYPE_TAG, TP7Memo, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadString(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7Memo(Instance).Text := String(Value);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedMemoText(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MEMO_TYPE_TAG, TP7Memo, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Value := UTF8String(TP7Memo(Instance).Text);
+    Result := Api^.MakeString(Api, PByte(PAnsiChar(Value)), Length(Value), Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedMemoSetOnChange(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Token: QWord;
+begin
+  Token := 0;
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MEMO_TYPE_TAG, TP7Memo, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := RetainEventCallback(Api, PP7ValueArray(Args)^[1], Token);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7Memo(Instance).SetChangeCallback(Api^.Runtime, Token);
+    Token := 0;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      if Token <> 0 then
+        ReleaseEvent(Api^.Runtime, Token);
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedMemoClearOnChange(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MEMO_TYPE_TAG, TP7Memo, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7Memo(Instance).ClearChangeCallback;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedMemoCreate(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Form: TForm;
+  Instance: TP7Memo;
+begin
+  Instance := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := TP7Memo.Create(Form);
+    Instance.Parent := Form;
+    Result := MakeHandleObject(Api, Instance, MEMO_TYPE_TAG, Output);
+    if Result = P7_STATUS_OK then Instance := nil;
+  except
+    on E: Exception do
+    begin
+      Instance.Free;
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedMemoFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(MEMO_TYPE_TAG), StrLen(MEMO_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TP7Memo);
+    if Instance <> nil then
+    begin
+      TP7Memo(Instance).ClearChangeCallback;
+    end;
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedMemoFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TP7Memo);
+    if Instance <> nil then
+    begin
+      TP7Memo(Instance).ClearChangeCallback;
+    end;
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedListBoxSetOnSelectionChange(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Token: QWord;
+begin
+  Token := 0;
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], LIST_BOX_TYPE_TAG, TP7ListBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := RetainEventCallback(Api, PP7ValueArray(Args)^[1], Token);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7ListBox(Instance).SetSelectionCallback(Api^.Runtime, Token);
+    Token := 0;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      if Token <> 0 then
+        ReleaseEvent(Api^.Runtime, Token);
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedListBoxClearOnSelectionChange(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], LIST_BOX_TYPE_TAG, TP7ListBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7ListBox(Instance).ClearSelectionCallback;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedListBoxCreate(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Form: TForm;
+  Instance: TP7ListBox;
+begin
+  Instance := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := TP7ListBox.Create(Form);
+    Instance.Parent := Form;
+    Result := MakeHandleObject(Api, Instance, LIST_BOX_TYPE_TAG, Output);
+    if Result = P7_STATUS_OK then Instance := nil;
+  except
+    on E: Exception do
+    begin
+      Instance.Free;
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedListBoxFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(LIST_BOX_TYPE_TAG), StrLen(LIST_BOX_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TP7ListBox);
+    if Instance <> nil then
+    begin
+      TP7ListBox(Instance).ClearSelectionCallback;
+    end;
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedListBoxFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TP7ListBox);
+    if Instance <> nil then
+    begin
+      TP7ListBox(Instance).ClearSelectionCallback;
+    end;
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedComboBoxSetOnChange(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Token: QWord;
+begin
+  Token := 0;
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], COMBO_BOX_TYPE_TAG, TP7ComboBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := RetainEventCallback(Api, PP7ValueArray(Args)^[1], Token);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7ComboBox(Instance).SetChangeCallback(Api^.Runtime, Token);
+    Token := 0;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      if Token <> 0 then
+        ReleaseEvent(Api^.Runtime, Token);
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedComboBoxClearOnChange(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], COMBO_BOX_TYPE_TAG, TP7ComboBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7ComboBox(Instance).ClearChangeCallback;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedComboBoxCreate(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Form: TForm;
+  Instance: TP7ComboBox;
+begin
+  Instance := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := TP7ComboBox.Create(Form);
+    Instance.Parent := Form;
+    Result := MakeHandleObject(Api, Instance, COMBO_BOX_TYPE_TAG, Output);
+    if Result = P7_STATUS_OK then Instance := nil;
+  except
+    on E: Exception do
+    begin
+      Instance.Free;
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedComboBoxFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(COMBO_BOX_TYPE_TAG), StrLen(COMBO_BOX_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TP7ComboBox);
+    if Instance <> nil then
+    begin
+      TP7ComboBox(Instance).ClearChangeCallback;
+    end;
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedComboBoxFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TP7ComboBox);
+    if Instance <> nil then
+    begin
+      TP7ComboBox(Instance).ClearChangeCallback;
+    end;
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
 function GeneratedPanelSetCaption(Userdata: Pointer; Api: PP7CallApi;
   Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
 var
@@ -1353,6 +2149,1319 @@ begin
     Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
     if Result <> P7_STATUS_OK then Exit;
     Instance := FindObjectOrNil(Handle, TPanel);
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedImageSetCenter(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: Boolean;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], IMAGE_TYPE_TAG, TImage, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TImage(Instance).Center := Value;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedImageCenter(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], IMAGE_TYPE_TAG, TImage, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := MakeBoolean(Api, TImage(Instance).Center, Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedImageSetStretch(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: Boolean;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], IMAGE_TYPE_TAG, TImage, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TImage(Instance).Stretch := Value;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedImageStretch(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], IMAGE_TYPE_TAG, TImage, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := MakeBoolean(Api, TImage(Instance).Stretch, Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedImageSetProportional(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: Boolean;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], IMAGE_TYPE_TAG, TImage, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TImage(Instance).Proportional := Value;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedImageProportional(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], IMAGE_TYPE_TAG, TImage, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := MakeBoolean(Api, TImage(Instance).Proportional, Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedImageSetTransparent(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: Boolean;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], IMAGE_TYPE_TAG, TImage, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TImage(Instance).Transparent := Value;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedImageTransparent(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], IMAGE_TYPE_TAG, TImage, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := MakeBoolean(Api, TImage(Instance).Transparent, Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedImageCreate(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Form: TForm;
+  Instance: TImage;
+begin
+  Instance := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := TImage.Create(Form);
+    Instance.Parent := Form;
+    Result := MakeHandleObject(Api, Instance, IMAGE_TYPE_TAG, Output);
+    if Result = P7_STATUS_OK then Instance := nil;
+  except
+    on E: Exception do
+    begin
+      Instance.Free;
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedImageFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(IMAGE_TYPE_TAG), StrLen(IMAGE_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TImage);
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedImageFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TImage);
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedTimerSetEnabled(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: Boolean;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TIMER_TYPE_TAG, TP7Timer, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7Timer(Instance).Enabled := Value;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedTimerEnabled(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TIMER_TYPE_TAG, TP7Timer, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := MakeBoolean(Api, TP7Timer(Instance).Enabled, Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedTimerSetOnTimer(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Token: QWord;
+begin
+  Token := 0;
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TIMER_TYPE_TAG, TP7Timer, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := RetainEventCallback(Api, PP7ValueArray(Args)^[1], Token);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7Timer(Instance).SetTimerCallback(Api^.Runtime, Token);
+    Token := 0;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      if Token <> 0 then
+        ReleaseEvent(Api^.Runtime, Token);
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedTimerClearOnTimer(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TIMER_TYPE_TAG, TP7Timer, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7Timer(Instance).ClearTimerCallback;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedTimerFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(TIMER_TYPE_TAG), StrLen(TIMER_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TP7Timer);
+    if Instance <> nil then
+    begin
+      TP7Timer(Instance).ClearTimerCallback;
+    end;
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedTimerFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TP7Timer);
+    if Instance <> nil then
+    begin
+      TP7Timer(Instance).ClearTimerCallback;
+    end;
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedMenuItemSetCaption(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MENU_ITEM_TYPE_TAG, TP7MenuItem, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadString(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7MenuItem(Instance).Caption := String(Value);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedMenuItemCaption(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MENU_ITEM_TYPE_TAG, TP7MenuItem, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Value := UTF8String(TP7MenuItem(Instance).Caption);
+    Result := Api^.MakeString(Api, PByte(PAnsiChar(Value)), Length(Value), Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedMenuItemSetEnabled(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: Boolean;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MENU_ITEM_TYPE_TAG, TP7MenuItem, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7MenuItem(Instance).Enabled := Value;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedMenuItemEnabled(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MENU_ITEM_TYPE_TAG, TP7MenuItem, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := MakeBoolean(Api, TP7MenuItem(Instance).Enabled, Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedMenuItemSetChecked(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: Boolean;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MENU_ITEM_TYPE_TAG, TP7MenuItem, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7MenuItem(Instance).Checked := Value;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedMenuItemChecked(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MENU_ITEM_TYPE_TAG, TP7MenuItem, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := MakeBoolean(Api, TP7MenuItem(Instance).Checked, Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedMenuItemSetOnClick(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Token: QWord;
+begin
+  Token := 0;
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MENU_ITEM_TYPE_TAG, TP7MenuItem, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := RetainEventCallback(Api, PP7ValueArray(Args)^[1], Token);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7MenuItem(Instance).SetClickCallback(Api^.Runtime, Token);
+    Token := 0;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      if Token <> 0 then
+        ReleaseEvent(Api^.Runtime, Token);
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedMenuItemClearOnClick(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], MENU_ITEM_TYPE_TAG, TP7MenuItem, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7MenuItem(Instance).ClearClickCallback;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedMainMenuFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(MAIN_MENU_TYPE_TAG), StrLen(MAIN_MENU_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TMainMenu);
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedMainMenuFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TMainMenu);
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedMenuItemFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(MENU_ITEM_TYPE_TAG), StrLen(MENU_ITEM_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TP7MenuItem);
+    if Instance <> nil then
+    begin
+      TP7MenuItem(Instance).ClearClickCallback;
+    end;
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedMenuItemFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TP7MenuItem);
+    if Instance <> nil then
+    begin
+      TP7MenuItem(Instance).ClearClickCallback;
+    end;
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedToolBarSetShowCaptions(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: Boolean;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TOOL_BAR_TYPE_TAG, TToolBar, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TToolBar(Instance).ShowCaptions := Value;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedToolBarShowCaptions(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TOOL_BAR_TYPE_TAG, TToolBar, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := MakeBoolean(Api, TToolBar(Instance).ShowCaptions, Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedToolBarCreate(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Form: TForm;
+  Instance: TToolBar;
+begin
+  Instance := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := TToolBar.Create(Form);
+    Instance.Parent := Form;
+    Result := MakeHandleObject(Api, Instance, TOOL_BAR_TYPE_TAG, Output);
+    if Result = P7_STATUS_OK then Instance := nil;
+  except
+    on E: Exception do
+    begin
+      Instance.Free;
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedToolBarFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(TOOL_BAR_TYPE_TAG), StrLen(TOOL_BAR_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TToolBar);
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedToolBarFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TToolBar);
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedToolButtonSetCaption(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TOOL_BUTTON_TYPE_TAG, TP7ToolButton, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadString(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7ToolButton(Instance).Caption := String(Value);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedToolButtonCaption(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TOOL_BUTTON_TYPE_TAG, TP7ToolButton, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Value := UTF8String(TP7ToolButton(Instance).Caption);
+    Result := Api^.MakeString(Api, PByte(PAnsiChar(Value)), Length(Value), Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedToolButtonSetOnClick(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Token: QWord;
+begin
+  Token := 0;
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TOOL_BUTTON_TYPE_TAG, TP7ToolButton, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := RetainEventCallback(Api, PP7ValueArray(Args)^[1], Token);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7ToolButton(Instance).SetClickCallback(Api^.Runtime, Token);
+    Token := 0;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      if Token <> 0 then
+        ReleaseEvent(Api^.Runtime, Token);
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedToolButtonClearOnClick(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], TOOL_BUTTON_TYPE_TAG, TP7ToolButton, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    TP7ToolButton(Instance).ClearClickCallback;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedToolButtonFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(TOOL_BUTTON_TYPE_TAG), StrLen(TOOL_BUTTON_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TP7ToolButton);
+    if Instance <> nil then
+    begin
+      TP7ToolButton(Instance).ClearClickCallback;
+    end;
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedToolButtonFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TP7ToolButton);
+    if Instance <> nil then
+    begin
+      TP7ToolButton(Instance).ClearClickCallback;
+    end;
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedStatusBarSetSimpleText(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], STATUS_BAR_TYPE_TAG, TStatusBar, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadString(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TStatusBar(Instance).SimpleText := String(Value);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedStatusBarSimpleText(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], STATUS_BAR_TYPE_TAG, TStatusBar, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Value := UTF8String(TStatusBar(Instance).SimpleText);
+    Result := Api^.MakeString(Api, PByte(PAnsiChar(Value)), Length(Value), Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedStatusBarSetSimplePanel(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: Boolean;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], STATUS_BAR_TYPE_TAG, TStatusBar, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadBoolean(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TStatusBar(Instance).SimplePanel := Value;
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedStatusBarSimplePanel(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], STATUS_BAR_TYPE_TAG, TStatusBar, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := MakeBoolean(Api, TStatusBar(Instance).SimplePanel, Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedStatusBarCreate(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Form: TForm;
+  Instance: TStatusBar;
+begin
+  Instance := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := TStatusBar.Create(Form);
+    Instance.Parent := Form;
+    Result := MakeHandleObject(Api, Instance, STATUS_BAR_TYPE_TAG, Output);
+    if Result = P7_STATUS_OK then Instance := nil;
+  except
+    on E: Exception do
+    begin
+      Instance.Free;
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedStatusBarFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(STATUS_BAR_TYPE_TAG), StrLen(STATUS_BAR_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TStatusBar);
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedStatusBarFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TStatusBar);
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedOpenDialogSetFileName(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], OPEN_DIALOG_TYPE_TAG, TOpenDialog, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadString(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TOpenDialog(Instance).FileName := String(Value);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedOpenDialogFileName(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], OPEN_DIALOG_TYPE_TAG, TOpenDialog, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Value := UTF8String(TOpenDialog(Instance).FileName);
+    Result := Api^.MakeString(Api, PByte(PAnsiChar(Value)), Length(Value), Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedOpenDialogSetFilter(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], OPEN_DIALOG_TYPE_TAG, TOpenDialog, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadString(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TOpenDialog(Instance).Filter := String(Value);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedOpenDialogFilter(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], OPEN_DIALOG_TYPE_TAG, TOpenDialog, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Value := UTF8String(TOpenDialog(Instance).Filter);
+    Result := Api^.MakeString(Api, PByte(PAnsiChar(Value)), Length(Value), Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedOpenDialogFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(OPEN_DIALOG_TYPE_TAG), StrLen(OPEN_DIALOG_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TOpenDialog);
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedOpenDialogFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TOpenDialog);
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedSaveDialogSetFileName(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], SAVE_DIALOG_TYPE_TAG, TSaveDialog, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadString(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TSaveDialog(Instance).FileName := String(Value);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedSaveDialogFileName(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], SAVE_DIALOG_TYPE_TAG, TSaveDialog, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Value := UTF8String(TSaveDialog(Instance).FileName);
+    Result := Api^.MakeString(Api, PByte(PAnsiChar(Value)), Length(Value), Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedSaveDialogFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(SAVE_DIALOG_TYPE_TAG), StrLen(SAVE_DIALOG_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TSaveDialog);
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedSaveDialogFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TSaveDialog);
+    ReleaseObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedGroupBoxSetCaption(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], GROUP_BOX_TYPE_TAG, TGroupBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Result := ReadString(Api, PP7ValueArray(Args)^[1], Value);
+    if Result <> P7_STATUS_OK then Exit;
+    TGroupBox(Instance).Caption := String(Value);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedGroupBoxCaption(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Instance: TObject;
+  Value: UTF8String;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadObject(Api, PP7ValueArray(Args)^[0], GROUP_BOX_TYPE_TAG, TGroupBox, Instance);
+    if Result <> P7_STATUS_OK then Exit;
+    Value := UTF8String(TGroupBox(Instance).Caption);
+    Result := Api^.MakeString(Api, PByte(PAnsiChar(Value)), Length(Value), Output);
+  except
+    on E: Exception do
+    begin
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedGroupBoxCreate(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Form: TForm;
+  Instance: TGroupBox;
+begin
+  Instance := nil;
+  try
+    if (ArgCount <> 1) or (Args = nil) or (Output = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := ReadForm(Api, PP7ValueArray(Args)^[0], Form);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := TGroupBox.Create(Form);
+    Instance.Parent := Form;
+    Result := MakeHandleObject(Api, Instance, GROUP_BOX_TYPE_TAG, Output);
+    if Result = P7_STATUS_OK then Instance := nil;
+  except
+    on E: Exception do
+    begin
+      Instance.Free;
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+    end;
+  end;
+end;
+
+function GeneratedGroupBoxFree(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 1) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetForeign(Api, PP7ValueArray(Args)^[0], PByte(GROUP_BOX_TYPE_TAG), StrLen(GROUP_BOX_TYPE_TAG), @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObject(Handle, TGroupBox);
+    ReleaseControlObject(Handle);
+    Result := P7_STATUS_OK;
+  except
+    on E: Exception do
+      Result := ErrorStatus(Api, E.ClassName + ': ' + E.Message);
+  end;
+end;
+
+function GeneratedGroupBoxFinalize(Userdata: Pointer; Api: PP7CallApi;
+  Args: PP7Value; ArgCount: PtrUInt; Output: PP7Value): TP7Status; cdecl;
+var
+  Handle: Int64;
+  Instance: TObject;
+begin
+  try
+    if (ArgCount <> 2) or (Args = nil) then
+      Exit(P7_STATUS_INVALID_ARGUMENT);
+    Result := Api^.GetInt(Api, PP7ValueArray(Args)^[0], @Handle);
+    if Result <> P7_STATUS_OK then Exit;
+    Instance := FindObjectOrNil(Handle, TGroupBox);
     ReleaseObject(Handle);
     Result := P7_STATUS_OK;
   except

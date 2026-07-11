@@ -657,6 +657,389 @@ fn test_bounded_message_pump_runs_requested_turns_without_blocking() -> string {
     if no_turns == 0 && turns == 1 { result } else { "wrong turns" }
 }
 
+@test(expected_type = "string", expected_value = "checked")
+fn test_checkbox_state_caption_and_change_event() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    let check = lcl.new_checkbox(form);
+    lcl.set_checkbox_caption(check, "Enable");
+    lcl.checkbox_on_change(check, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.CheckBox>;
+        lcl.set_component_name(actual, "changed");
+        lcl.set_label_caption(label, "changed");
+    });
+    lcl.click_checkbox(check);
+    let changed = lcl.label_caption(label);
+    let result = if lcl.checkbox_checked(check)
+        && lcl.checkbox_caption(check) == "Enable"
+        && changed == "changed" {
+        "checked"
+    } else {
+        "failed"
+    };
+    lcl.checkbox_clear_on_change(check);
+    lcl.free_checkbox(check);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "second")
+fn test_radio_buttons_form_an_exclusive_group() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    let first = lcl.new_radio_button(form);
+    let second = lcl.new_radio_button(form);
+    lcl.set_radio_button_caption(first, "First");
+    lcl.set_radio_button_caption(second, "Second");
+    lcl.radio_button_on_change(second, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.RadioButton>;
+        lcl.set_component_name(actual, "changed");
+        lcl.set_label_caption(label, "second");
+    });
+    lcl.click_radio_button(first);
+    lcl.click_radio_button(second);
+    let changed = lcl.label_caption(label);
+    let result = if lcl.radio_button_checked(second)
+        && !lcl.radio_button_checked(first)
+        && changed == "second" {
+        "second"
+    } else {
+        "failed"
+    };
+    lcl.radio_button_clear_on_change(second);
+    lcl.free_radio_button(second);
+    lcl.free_radio_button(first);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "int", expected_value = "1")
+fn test_checkbox_change_can_release_control_safely() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let check = lcl.new_checkbox(form);
+    lcl.checkbox_on_change(check, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.CheckBox>;
+        lcl.free_checkbox(actual);
+    });
+    lcl.click_checkbox(check);
+    lcl.process_messages();
+    lcl.free_form(form);
+    1
+}
+
+@test(expected_type = "string", expected_value = "memo changed")
+fn test_memo_text_and_change_event() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let memo = lcl.new_memo(form);
+    lcl.memo_on_change(memo, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.Memo>;
+        lcl.set_component_name(actual, "changed");
+    });
+    lcl.set_memo_text(memo, "memo changed");
+    lcl.memo_trigger_change(memo);
+    let result = lcl.memo_text(memo);
+    lcl.memo_clear_on_change(memo);
+    lcl.free_memo(memo);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "beta:1")
+fn test_list_box_uses_indexed_item_api_and_selection_event() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let list = lcl.new_list_box(form);
+    let first = lcl.list_box_add_item(list, "alpha");
+    let second = lcl.list_box_add_item(list, "bravo");
+    lcl.list_box_set_item(list, second, "beta");
+    lcl.list_box_on_selection_change(list, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.ListBox>;
+        lcl.set_component_name(actual, "selected");
+    });
+    lcl.list_box_select_index(list, second);
+    let item = lcl.list_box_item(list, lcl.list_box_item_index(list));
+    let result = if first == 0
+        && lcl.list_box_item_count(list) == 2
+        && lcl.component_name(list) == "selected" {
+        item + ":1"
+    } else {
+        "failed"
+    };
+    lcl.list_box_delete_item(list, first);
+    lcl.list_box_clear_items(list);
+    lcl.list_box_clear_on_selection_change(list);
+    lcl.free_list_box(list);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "two")
+fn test_combo_box_uses_indexed_item_api_and_change_event() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let combo = lcl.new_combo_box(form);
+    lcl.combo_box_add_item(combo, "one");
+    let second = lcl.combo_box_add_item(combo, "two");
+    lcl.combo_box_on_change(combo, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.ComboBox>;
+        lcl.set_component_name(actual, "selected");
+    });
+    lcl.combo_box_select_index(combo, second);
+    let result = lcl.combo_box_item(combo, lcl.combo_box_item_index(combo));
+    lcl.combo_box_clear_on_change(combo);
+    lcl.combo_box_clear_items(combo);
+    lcl.free_combo_box(combo);
+    lcl.free_form(form);
+    result
+}
+
+@test(runtime_error = "item index is out of range")
+fn test_indexed_item_api_rejects_invalid_index() {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let list = lcl.new_list_box(form);
+    let ignored = lcl.list_box_item(list, 0);
+    lcl.free_list_box(list);
+    lcl.free_form(form);
+}
+
+@test(expected_type = "int", expected_value = "1")
+fn test_list_selection_can_release_control_safely() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let list = lcl.new_list_box(form);
+    lcl.list_box_add_item(list, "item");
+    lcl.list_box_on_selection_change(list, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.ListBox>;
+        lcl.free_list_box(actual);
+    });
+    lcl.list_box_select_index(list, 0);
+    lcl.process_messages();
+    lcl.free_form(form);
+    1
+}
+
+@test(expected_type = "int", expected_value = "1")
+fn test_image_properties_and_empty_picture_dimensions() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let image = lcl.new_image(form);
+    lcl.set_image_center(image, true);
+    lcl.set_image_stretch(image, true);
+    lcl.set_image_proportional(image, true);
+    lcl.set_image_transparent(image, true);
+    lcl.image_clear(image);
+    let result = if lcl.image_center(image)
+        && lcl.image_stretch(image)
+        && lcl.image_proportional(image)
+        && lcl.image_transparent(image)
+        && lcl.image_picture_width(image) == 0
+        && lcl.image_picture_height(image) == 0 {
+        1
+    } else {
+        0
+    };
+    lcl.free_image(image);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "timer")
+fn test_timer_interval_enabled_state_and_event() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    let timer = lcl.new_timer(form);
+    lcl.set_timer_interval(timer, 25);
+    lcl.set_timer_enabled(timer, true);
+    lcl.timer_on_timer(timer, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.Timer>;
+        lcl.set_component_name(actual, "fired");
+        lcl.set_label_caption(label, "timer");
+    });
+    lcl.timer_trigger(timer);
+    let result = if lcl.timer_interval(timer) == 25
+        && lcl.timer_enabled(timer) {
+        lcl.label_caption(label)
+    } else {
+        "failed"
+    };
+    lcl.timer_clear_on_timer(timer);
+    lcl.set_timer_enabled(timer, false);
+    lcl.free_timer(timer);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(runtime_error = "timer interval must be positive")
+fn test_timer_rejects_non_positive_interval() {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let timer = lcl.new_timer(form);
+    lcl.set_timer_interval(timer, 0);
+    lcl.free_timer(timer);
+    lcl.free_form(form);
+}
+
+@test(expected_type = "int", expected_value = "1")
+fn test_timer_event_can_release_timer_safely() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let timer = lcl.new_timer(form);
+    lcl.timer_on_timer(timer, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.Timer>;
+        lcl.free_timer(actual);
+    });
+    lcl.timer_trigger(timer);
+    lcl.process_messages();
+    lcl.free_form(form);
+    1
+}
+
+@test(expected_type = "string", expected_value = "Open:1")
+fn test_menu_hierarchy_state_and_click_event() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let menu = lcl.new_main_menu(form);
+    let file = lcl.new_menu_item(menu);
+    let open = lcl.new_submenu_item(file);
+    lcl.set_form_main_menu(form, menu);
+    lcl.set_menu_item_caption(file, "File");
+    lcl.set_menu_item_caption(open, "Open");
+    lcl.set_menu_item_enabled(open, true);
+    lcl.set_menu_item_checked(open, true);
+    lcl.menu_item_on_click(open, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.MenuItem>;
+        lcl.set_component_name(actual, "clicked");
+    });
+    lcl.click_menu_item(open);
+    let child = lcl.menu_item(file, 0);
+    let result = if lcl.menu_item_count(file) == 1
+        && lcl.menu_item_caption(child) == "Open"
+        && lcl.menu_item_enabled(open)
+        && lcl.menu_item_checked(open)
+        && lcl.component_name(open) == "clicked" {
+        lcl.menu_item_caption(open) + ":1"
+    } else {
+        "failed"
+    };
+    lcl.menu_item_clear_on_click(open);
+    lcl.free_menu_item(open);
+    lcl.free_menu_item(file);
+    lcl.free_main_menu(menu);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "int", expected_value = "1")
+fn test_menu_click_can_release_item_safely() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let menu = lcl.new_main_menu(form);
+    let item = lcl.new_menu_item(menu);
+    lcl.menu_item_on_click(item, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.MenuItem>;
+        lcl.free_menu_item(actual);
+    });
+    lcl.click_menu_item(item);
+    lcl.process_messages();
+    lcl.free_main_menu(menu);
+    lcl.free_form(form);
+    1
+}
+
+@test(expected_type = "string", expected_value = "Run:1")
+fn test_toolbar_buttons_and_click_event() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let tool_bar = lcl.new_tool_bar(form);
+    let button = lcl.new_tool_button(tool_bar);
+    lcl.set_tool_bar_show_captions(tool_bar, true);
+    lcl.set_tool_button_caption(button, "Run");
+    lcl.tool_button_on_click(button, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.ToolButton>;
+        lcl.set_component_name(actual, "clicked");
+    });
+    lcl.click_tool_button(button);
+    let result = if lcl.tool_bar_show_captions(tool_bar)
+        && lcl.tool_bar_button_count(tool_bar) == 1
+        && lcl.component_name(button) == "clicked" {
+        lcl.tool_button_caption(button) + ":1"
+    } else {
+        "failed"
+    };
+    lcl.tool_button_clear_on_click(button);
+    lcl.free_tool_button(button);
+    lcl.free_tool_bar(tool_bar);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "int", expected_value = "1")
+fn test_tool_button_click_can_release_button_safely() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let tool_bar = lcl.new_tool_bar(form);
+    let button = lcl.new_tool_button(tool_bar);
+    lcl.tool_button_on_click(button, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.ToolButton>;
+        lcl.free_tool_button(actual);
+    });
+    lcl.click_tool_button(button);
+    lcl.process_messages();
+    lcl.free_tool_bar(tool_bar);
+    lcl.free_form(form);
+    1
+}
+
+@test(expected_type = "string", expected_value = "Ready:Files:output.txt:Options")
+fn test_status_dialog_and_group_box_properties() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let status = lcl.new_status_bar(form);
+    let open = lcl.new_open_dialog(form);
+    let save = lcl.new_save_dialog(form);
+    let group = lcl.new_group_box(form);
+    let label = lcl.new_label(form);
+
+    lcl.set_status_bar_simple_panel(status, true);
+    lcl.set_status_bar_simple_text(status, "Ready");
+    lcl.set_open_dialog_file_name(open, "input.txt");
+    lcl.set_open_dialog_filter(open, "Files|*.*");
+    lcl.set_save_dialog_file_name(save, "output.txt");
+    lcl.set_open_dialog_filter(save, "Text|*.txt");
+    lcl.set_group_box_caption(group, "Options");
+    lcl.set_component_name(group, "OptionsGroup");
+    lcl.set_control_parent(label, group);
+
+    let result = if lcl.status_bar_simple_panel(status)
+        && lcl.open_dialog_file_name(open) == "input.txt"
+        && lcl.open_dialog_filter(save) == "Text|*.txt"
+        && lcl.component_name(lcl.control_parent(label)) == "OptionsGroup" {
+        lcl.status_bar_simple_text(status)
+            + ":Files:"
+            + lcl.save_dialog_file_name(save)
+            + ":"
+            + lcl.group_box_caption(group)
+    } else {
+        "failed"
+    };
+    lcl.free_label(label);
+    lcl.free_group_box(group);
+    lcl.free_save_dialog(save);
+    lcl.free_open_dialog(open);
+    lcl.free_status_bar(status);
+    lcl.free_form(form);
+    result
+}
+
 @test(runtime_error = "message-pump turn count must be non-negative")
 fn test_bounded_message_pump_rejects_negative_turns() {
     lcl.initialize();

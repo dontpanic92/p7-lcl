@@ -6,9 +6,12 @@ interface
 
 uses
   Classes,
+  ComCtrls,
   Controls,
+  ExtCtrls,
   Forms,
   LCLType,
+  Menus,
   StdCtrls,
   SysUtils;
 
@@ -72,6 +75,102 @@ type
     procedure TriggerEnter;
     procedure TriggerExit;
     procedure TriggerMouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+  end;
+
+  TP7CheckBox = class(TCheckBox)
+  private
+    FChangeCallback: QWord;
+    FChangeRuntime: Pointer;
+    procedure HandleChange(Sender: TObject);
+  public
+    destructor Destroy; override;
+    procedure ClearChangeCallback;
+    procedure SetChangeCallback(Runtime: Pointer; Token: QWord);
+    procedure TriggerClick;
+  end;
+
+  TP7RadioButton = class(TRadioButton)
+  private
+    FChangeCallback: QWord;
+    FChangeRuntime: Pointer;
+    procedure HandleChange(Sender: TObject);
+  public
+    destructor Destroy; override;
+    procedure ClearChangeCallback;
+    procedure SetChangeCallback(Runtime: Pointer; Token: QWord);
+    procedure TriggerClick;
+  end;
+
+  TP7Memo = class(TMemo)
+  private
+    FChangeCallback: QWord;
+    FChangeRuntime: Pointer;
+    procedure HandleChange(Sender: TObject);
+  public
+    destructor Destroy; override;
+    procedure ClearChangeCallback;
+    procedure SetChangeCallback(Runtime: Pointer; Token: QWord);
+    procedure TriggerChange;
+  end;
+
+  TP7ListBox = class(TListBox)
+  private
+    FSelectionCallback: QWord;
+    FSelectionRuntime: Pointer;
+    procedure HandleSelectionChange(Sender: TObject; User: Boolean);
+  public
+    destructor Destroy; override;
+    procedure ClearSelectionCallback;
+    procedure SelectIndex(Index: Integer);
+    procedure SetSelectionCallback(Runtime: Pointer; Token: QWord);
+  end;
+
+  TP7ComboBox = class(TComboBox)
+  private
+    FChangeCallback: QWord;
+    FChangeRuntime: Pointer;
+    procedure HandleChange(Sender: TObject);
+  public
+    destructor Destroy; override;
+    procedure ClearChangeCallback;
+    procedure SelectIndex(Index: Integer);
+    procedure SetChangeCallback(Runtime: Pointer; Token: QWord);
+  end;
+
+  TP7Timer = class(TTimer)
+  private
+    FTimerCallback: QWord;
+    FTimerRuntime: Pointer;
+    procedure HandleTimer(Sender: TObject);
+  public
+    destructor Destroy; override;
+    procedure ClearTimerCallback;
+    procedure SetTimerCallback(Runtime: Pointer; Token: QWord);
+    procedure TriggerTimer;
+  end;
+
+  TP7MenuItem = class(TMenuItem)
+  private
+    FClickCallback: QWord;
+    FClickRuntime: Pointer;
+    procedure HandleClick(Sender: TObject);
+  public
+    destructor Destroy; override;
+    procedure ClearClickCallback;
+    procedure SetClickCallback(Runtime: Pointer; Token: QWord);
+    procedure TriggerClick;
+  end;
+
+  TP7ToolButton = class(TToolButton)
+  private
+    FClickCallback: QWord;
+    FClickRuntime: Pointer;
+    procedure HandleClick(Sender: TObject);
+  public
+    destructor Destroy; override;
+    procedure ClearClickCallback;
+    procedure SetClickCallback(Runtime: Pointer; Token: QWord);
+    procedure TriggerClick;
   end;
 
   TP7Edit = class(TEdit)
@@ -377,6 +476,16 @@ begin
   InvokeEventValues(Runtime, Token, @Arguments[0], 2, P7_CALLBACK_UNIT, Output);
 end;
 
+procedure InvokeSenderEvent(Runtime: Pointer; Token: QWord; Sender: TObject);
+var
+  Arguments: array[0..0] of TP7CallbackValue;
+  Output: TP7CallbackValue;
+  TypeTag: UTF8String;
+begin
+  if SetForeignArgument(Arguments[0], Sender, TypeTag) then
+    InvokeEventValues(Runtime, Token, @Arguments[0], 1, P7_CALLBACK_UNIT, Output);
+end;
+
 destructor TP7ApplicationEvents.Destroy;
 begin
   ClearExceptionCallback;
@@ -542,6 +651,256 @@ procedure TP7Button.TriggerMouseDown(Button: TMouseButton; Shift: TShiftState;
   X, Y: Integer);
 begin
   MouseDown(Button, Shift, X, Y);
+end;
+
+destructor TP7CheckBox.Destroy;
+begin
+  ClearChangeCallback;
+  inherited Destroy;
+end;
+
+procedure TP7CheckBox.HandleChange(Sender: TObject);
+begin
+  InvokeSenderEvent(FChangeRuntime, FChangeCallback, Sender);
+end;
+
+procedure TP7CheckBox.ClearChangeCallback;
+begin
+  OnChange := nil;
+  ReleaseEvent(FChangeRuntime, FChangeCallback);
+  FChangeRuntime := nil;
+end;
+
+procedure TP7CheckBox.SetChangeCallback(Runtime: Pointer; Token: QWord);
+begin
+  ClearChangeCallback;
+  FChangeRuntime := Runtime;
+  FChangeCallback := Token;
+  OnChange := @HandleChange;
+end;
+
+procedure TP7CheckBox.TriggerClick;
+begin
+  Checked := not Checked;
+end;
+
+destructor TP7RadioButton.Destroy;
+begin
+  ClearChangeCallback;
+  inherited Destroy;
+end;
+
+procedure TP7RadioButton.HandleChange(Sender: TObject);
+begin
+  InvokeSenderEvent(FChangeRuntime, FChangeCallback, Sender);
+end;
+
+procedure TP7RadioButton.ClearChangeCallback;
+begin
+  OnChange := nil;
+  ReleaseEvent(FChangeRuntime, FChangeCallback);
+  FChangeRuntime := nil;
+end;
+
+procedure TP7RadioButton.SetChangeCallback(Runtime: Pointer; Token: QWord);
+begin
+  ClearChangeCallback;
+  FChangeRuntime := Runtime;
+  FChangeCallback := Token;
+  OnChange := @HandleChange;
+end;
+
+procedure TP7RadioButton.TriggerClick;
+begin
+  Checked := True;
+end;
+
+destructor TP7Memo.Destroy;
+begin
+  ClearChangeCallback;
+  inherited Destroy;
+end;
+
+procedure TP7Memo.HandleChange(Sender: TObject);
+begin
+  InvokeSenderEvent(FChangeRuntime, FChangeCallback, Sender);
+end;
+
+procedure TP7Memo.ClearChangeCallback;
+begin
+  OnChange := nil;
+  ReleaseEvent(FChangeRuntime, FChangeCallback);
+  FChangeRuntime := nil;
+end;
+
+procedure TP7Memo.SetChangeCallback(Runtime: Pointer; Token: QWord);
+begin
+  ClearChangeCallback;
+  FChangeRuntime := Runtime;
+  FChangeCallback := Token;
+  OnChange := @HandleChange;
+end;
+
+procedure TP7Memo.TriggerChange;
+begin
+  Change;
+end;
+
+destructor TP7ListBox.Destroy;
+begin
+  ClearSelectionCallback;
+  inherited Destroy;
+end;
+
+procedure TP7ListBox.HandleSelectionChange(Sender: TObject; User: Boolean);
+begin
+  InvokeSenderEvent(FSelectionRuntime, FSelectionCallback, Sender);
+end;
+
+procedure TP7ListBox.ClearSelectionCallback;
+begin
+  OnSelectionChange := nil;
+  ReleaseEvent(FSelectionRuntime, FSelectionCallback);
+  FSelectionRuntime := nil;
+end;
+
+procedure TP7ListBox.SelectIndex(Index: Integer);
+begin
+  ItemIndex := Index;
+  DoSelectionChange(False);
+end;
+
+procedure TP7ListBox.SetSelectionCallback(Runtime: Pointer; Token: QWord);
+begin
+  ClearSelectionCallback;
+  FSelectionRuntime := Runtime;
+  FSelectionCallback := Token;
+  OnSelectionChange := @HandleSelectionChange;
+end;
+
+destructor TP7ComboBox.Destroy;
+begin
+  ClearChangeCallback;
+  inherited Destroy;
+end;
+
+procedure TP7ComboBox.HandleChange(Sender: TObject);
+begin
+  InvokeSenderEvent(FChangeRuntime, FChangeCallback, Sender);
+end;
+
+procedure TP7ComboBox.ClearChangeCallback;
+begin
+  OnChange := nil;
+  ReleaseEvent(FChangeRuntime, FChangeCallback);
+  FChangeRuntime := nil;
+end;
+
+procedure TP7ComboBox.SelectIndex(Index: Integer);
+begin
+  ItemIndex := Index;
+  Change;
+end;
+
+procedure TP7ComboBox.SetChangeCallback(Runtime: Pointer; Token: QWord);
+begin
+  ClearChangeCallback;
+  FChangeRuntime := Runtime;
+  FChangeCallback := Token;
+  OnChange := @HandleChange;
+end;
+
+destructor TP7Timer.Destroy;
+begin
+  ClearTimerCallback;
+  inherited Destroy;
+end;
+
+procedure TP7Timer.HandleTimer(Sender: TObject);
+begin
+  InvokeSenderEvent(FTimerRuntime, FTimerCallback, Sender);
+end;
+
+procedure TP7Timer.ClearTimerCallback;
+begin
+  OnTimer := nil;
+  ReleaseEvent(FTimerRuntime, FTimerCallback);
+  FTimerRuntime := nil;
+end;
+
+procedure TP7Timer.SetTimerCallback(Runtime: Pointer; Token: QWord);
+begin
+  ClearTimerCallback;
+  FTimerRuntime := Runtime;
+  FTimerCallback := Token;
+  OnTimer := @HandleTimer;
+end;
+
+procedure TP7Timer.TriggerTimer;
+begin
+  DoOnTimer;
+end;
+
+destructor TP7MenuItem.Destroy;
+begin
+  ClearClickCallback;
+  inherited Destroy;
+end;
+
+procedure TP7MenuItem.HandleClick(Sender: TObject);
+begin
+  InvokeSenderEvent(FClickRuntime, FClickCallback, Sender);
+end;
+
+procedure TP7MenuItem.ClearClickCallback;
+begin
+  OnClick := nil;
+  ReleaseEvent(FClickRuntime, FClickCallback);
+  FClickRuntime := nil;
+end;
+
+procedure TP7MenuItem.SetClickCallback(Runtime: Pointer; Token: QWord);
+begin
+  ClearClickCallback;
+  FClickRuntime := Runtime;
+  FClickCallback := Token;
+  OnClick := @HandleClick;
+end;
+
+procedure TP7MenuItem.TriggerClick;
+begin
+  Click;
+end;
+
+destructor TP7ToolButton.Destroy;
+begin
+  ClearClickCallback;
+  inherited Destroy;
+end;
+
+procedure TP7ToolButton.HandleClick(Sender: TObject);
+begin
+  InvokeSenderEvent(FClickRuntime, FClickCallback, Sender);
+end;
+
+procedure TP7ToolButton.ClearClickCallback;
+begin
+  OnClick := nil;
+  ReleaseEvent(FClickRuntime, FClickCallback);
+  FClickRuntime := nil;
+end;
+
+procedure TP7ToolButton.SetClickCallback(Runtime: Pointer; Token: QWord);
+begin
+  ClearClickCallback;
+  FClickRuntime := Runtime;
+  FClickCallback := Token;
+  OnClick := @HandleClick;
+end;
+
+procedure TP7ToolButton.TriggerClick;
+begin
+  Click;
 end;
 
 procedure TP7Edit.HandleChange(Sender: TObject);

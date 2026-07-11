@@ -114,6 +114,22 @@ pub proto[WinControl] Button {
 }
 
 @foreign(
+    type_tag="lcl.TCheckBox",
+    dispatcher="p7lcl.checkbox.unused",
+    finalizer="p7lcl.checkbox.finalize",
+)
+pub proto[WinControl] CheckBox {
+}
+
+@foreign(
+    type_tag="lcl.TRadioButton",
+    dispatcher="p7lcl.radio_button.unused",
+    finalizer="p7lcl.radio_button.finalize",
+)
+pub proto[WinControl] RadioButton {
+}
+
+@foreign(
     type_tag="lcl.TLabel",
     dispatcher="p7lcl.label.unused",
     finalizer="p7lcl.label.finalize",
@@ -130,11 +146,115 @@ pub proto[WinControl] Edit {
 }
 
 @foreign(
+    type_tag="lcl.TMemo",
+    dispatcher="p7lcl.memo.unused",
+    finalizer="p7lcl.memo.finalize",
+)
+pub proto[WinControl] Memo {
+}
+
+@foreign(
+    type_tag="lcl.TListBox",
+    dispatcher="p7lcl.list_box.unused",
+    finalizer="p7lcl.list_box.finalize",
+)
+pub proto[WinControl] ListBox {
+}
+
+@foreign(
+    type_tag="lcl.TComboBox",
+    dispatcher="p7lcl.combo_box.unused",
+    finalizer="p7lcl.combo_box.finalize",
+)
+pub proto[WinControl] ComboBox {
+}
+
+@foreign(
     type_tag="lcl.TPanel",
     dispatcher="p7lcl.panel.unused",
     finalizer="p7lcl.panel.finalize",
 )
 pub proto[WinControl] Panel {
+}
+
+@foreign(
+    type_tag="lcl.TImage",
+    dispatcher="p7lcl.image.unused",
+    finalizer="p7lcl.image.finalize",
+)
+pub proto[Control] Image {
+}
+
+@foreign(
+    type_tag="lcl.TTimer",
+    dispatcher="p7lcl.timer.unused",
+    finalizer="p7lcl.timer.finalize",
+)
+pub proto[Component] Timer {
+}
+
+@foreign(
+    type_tag="lcl.TMainMenu",
+    dispatcher="p7lcl.main_menu.unused",
+    finalizer="p7lcl.main_menu.finalize",
+)
+pub proto[Component] MainMenu {
+}
+
+@foreign(
+    type_tag="lcl.TMenuItem",
+    dispatcher="p7lcl.menu_item.unused",
+    finalizer="p7lcl.menu_item.finalize",
+)
+pub proto[Component] MenuItem {
+}
+
+@foreign(
+    type_tag="lcl.TToolBar",
+    dispatcher="p7lcl.tool_bar.unused",
+    finalizer="p7lcl.tool_bar.finalize",
+)
+pub proto[WinControl] ToolBar {
+}
+
+@foreign(
+    type_tag="lcl.TToolButton",
+    dispatcher="p7lcl.tool_button.unused",
+    finalizer="p7lcl.tool_button.finalize",
+)
+pub proto[Control] ToolButton {
+}
+
+@foreign(
+    type_tag="lcl.TStatusBar",
+    dispatcher="p7lcl.status_bar.unused",
+    finalizer="p7lcl.status_bar.finalize",
+)
+pub proto[WinControl] StatusBar {
+}
+
+@foreign(
+    type_tag="lcl.TOpenDialog",
+    dispatcher="p7lcl.open_dialog.unused",
+    finalizer="p7lcl.open_dialog.finalize",
+)
+pub proto[Component] OpenDialog {
+}
+
+@foreign(
+    type_tag="lcl.TSaveDialog",
+    dispatcher="p7lcl.save_dialog.unused",
+    finalizer="p7lcl.save_dialog.finalize",
+)
+pub proto[OpenDialog] SaveDialog {
+}
+
+@foreign(
+    type_tag="lcl.TGroupBox",
+    dispatcher="p7lcl.group_box.unused",
+    finalizer="p7lcl.group_box.finalize",
+)
+pub proto[WinControl] GroupBox {
 }
 
 @intrinsic(name="p7lcl.application.initialize")
@@ -368,6 +488,60 @@ fn native_button_send_mouse_down(button: handle<Button>, mouse_button: ffi.i32, 
 @intrinsic(name="p7lcl.button.free")
 fn native_free_button(button: handle<Button>);
 
+@intrinsic(name="p7lcl.checkbox.create")
+fn native_create_checkbox(form: box<Form>) -> handle<CheckBox>;
+
+@intrinsic(name="p7lcl.checkbox.set_caption")
+fn native_set_checkbox_caption(checkbox: handle<CheckBox>, caption: string);
+
+@intrinsic(name="p7lcl.checkbox.caption")
+fn native_checkbox_caption(checkbox: handle<CheckBox>) -> string;
+
+@intrinsic(name="p7lcl.checkbox.set_checked")
+fn native_set_checkbox_checked(checkbox: handle<CheckBox>, checked: bool);
+
+@intrinsic(name="p7lcl.checkbox.checked")
+fn native_checkbox_checked(checkbox: handle<CheckBox>) -> bool;
+
+@intrinsic(name="p7lcl.checkbox.on_change")
+fn native_checkbox_on_change(checkbox: handle<CheckBox>, callback: fn(handle<Control>));
+
+@intrinsic(name="p7lcl.checkbox.clear_on_change")
+fn native_checkbox_clear_on_change(checkbox: handle<CheckBox>);
+
+@intrinsic(name="p7lcl.checkbox.click")
+fn native_click_checkbox(checkbox: handle<CheckBox>);
+
+@intrinsic(name="p7lcl.checkbox.free")
+fn native_free_checkbox(checkbox: handle<CheckBox>);
+
+@intrinsic(name="p7lcl.radio_button.create")
+fn native_create_radio_button(form: box<Form>) -> handle<RadioButton>;
+
+@intrinsic(name="p7lcl.radio_button.set_caption")
+fn native_set_radio_button_caption(radio_button: handle<RadioButton>, caption: string);
+
+@intrinsic(name="p7lcl.radio_button.caption")
+fn native_radio_button_caption(radio_button: handle<RadioButton>) -> string;
+
+@intrinsic(name="p7lcl.radio_button.set_checked")
+fn native_set_radio_button_checked(radio_button: handle<RadioButton>, checked: bool);
+
+@intrinsic(name="p7lcl.radio_button.checked")
+fn native_radio_button_checked(radio_button: handle<RadioButton>) -> bool;
+
+@intrinsic(name="p7lcl.radio_button.on_change")
+fn native_radio_button_on_change(radio_button: handle<RadioButton>, callback: fn(handle<Control>));
+
+@intrinsic(name="p7lcl.radio_button.clear_on_change")
+fn native_radio_button_clear_on_change(radio_button: handle<RadioButton>);
+
+@intrinsic(name="p7lcl.radio_button.click")
+fn native_click_radio_button(radio_button: handle<RadioButton>);
+
+@intrinsic(name="p7lcl.radio_button.free")
+fn native_free_radio_button(radio_button: handle<RadioButton>);
+
 @intrinsic(name="p7lcl.label.create")
 fn native_create_label(form: box<Form>) -> handle<Label>;
 
@@ -461,6 +635,99 @@ fn native_edit_send_utf8_key_press(edit: handle<Edit>, key: string) -> string;
 @intrinsic(name="p7lcl.edit.free")
 fn native_free_edit(edit: handle<Edit>);
 
+@intrinsic(name="p7lcl.memo.create")
+fn native_create_memo(form: box<Form>) -> handle<Memo>;
+
+@intrinsic(name="p7lcl.memo.set_text")
+fn native_set_memo_text(memo: handle<Memo>, text: string);
+
+@intrinsic(name="p7lcl.memo.text")
+fn native_memo_text(memo: handle<Memo>) -> string;
+
+@intrinsic(name="p7lcl.memo.on_change")
+fn native_memo_on_change(memo: handle<Memo>, callback: fn(handle<Control>));
+
+@intrinsic(name="p7lcl.memo.clear_on_change")
+fn native_memo_clear_on_change(memo: handle<Memo>);
+
+@intrinsic(name="p7lcl.memo.trigger_change")
+fn native_memo_trigger_change(memo: handle<Memo>);
+
+@intrinsic(name="p7lcl.memo.free")
+fn native_free_memo(memo: handle<Memo>);
+
+@intrinsic(name="p7lcl.list_box.create")
+fn native_create_list_box(form: box<Form>) -> handle<ListBox>;
+
+@intrinsic(name="p7lcl.list_box.item_count")
+fn native_list_box_item_count(list_box: handle<ListBox>) -> int;
+
+@intrinsic(name="p7lcl.list_box.item")
+fn native_list_box_item(list_box: handle<ListBox>, index: int) -> string;
+
+@intrinsic(name="p7lcl.list_box.add_item")
+fn native_list_box_add_item(list_box: handle<ListBox>, item: string) -> int;
+
+@intrinsic(name="p7lcl.list_box.set_item")
+fn native_list_box_set_item(list_box: handle<ListBox>, index: int, item: string);
+
+@intrinsic(name="p7lcl.list_box.delete_item")
+fn native_list_box_delete_item(list_box: handle<ListBox>, index: int);
+
+@intrinsic(name="p7lcl.list_box.clear_items")
+fn native_list_box_clear_items(list_box: handle<ListBox>);
+
+@intrinsic(name="p7lcl.list_box.item_index")
+fn native_list_box_item_index(list_box: handle<ListBox>) -> int;
+
+@intrinsic(name="p7lcl.list_box.select_index")
+fn native_list_box_select_index(list_box: handle<ListBox>, index: int);
+
+@intrinsic(name="p7lcl.list_box.on_selection_change")
+fn native_list_box_on_selection_change(list_box: handle<ListBox>, callback: fn(handle<Control>));
+
+@intrinsic(name="p7lcl.list_box.clear_on_selection_change")
+fn native_list_box_clear_on_selection_change(list_box: handle<ListBox>);
+
+@intrinsic(name="p7lcl.list_box.free")
+fn native_free_list_box(list_box: handle<ListBox>);
+
+@intrinsic(name="p7lcl.combo_box.create")
+fn native_create_combo_box(form: box<Form>) -> handle<ComboBox>;
+
+@intrinsic(name="p7lcl.combo_box.item_count")
+fn native_combo_box_item_count(combo_box: handle<ComboBox>) -> int;
+
+@intrinsic(name="p7lcl.combo_box.item")
+fn native_combo_box_item(combo_box: handle<ComboBox>, index: int) -> string;
+
+@intrinsic(name="p7lcl.combo_box.add_item")
+fn native_combo_box_add_item(combo_box: handle<ComboBox>, item: string) -> int;
+
+@intrinsic(name="p7lcl.combo_box.set_item")
+fn native_combo_box_set_item(combo_box: handle<ComboBox>, index: int, item: string);
+
+@intrinsic(name="p7lcl.combo_box.delete_item")
+fn native_combo_box_delete_item(combo_box: handle<ComboBox>, index: int);
+
+@intrinsic(name="p7lcl.combo_box.clear_items")
+fn native_combo_box_clear_items(combo_box: handle<ComboBox>);
+
+@intrinsic(name="p7lcl.combo_box.item_index")
+fn native_combo_box_item_index(combo_box: handle<ComboBox>) -> int;
+
+@intrinsic(name="p7lcl.combo_box.select_index")
+fn native_combo_box_select_index(combo_box: handle<ComboBox>, index: int);
+
+@intrinsic(name="p7lcl.combo_box.on_change")
+fn native_combo_box_on_change(combo_box: handle<ComboBox>, callback: fn(handle<Control>));
+
+@intrinsic(name="p7lcl.combo_box.clear_on_change")
+fn native_combo_box_clear_on_change(combo_box: handle<ComboBox>);
+
+@intrinsic(name="p7lcl.combo_box.free")
+fn native_free_combo_box(combo_box: handle<ComboBox>);
+
 @intrinsic(name="p7lcl.panel.create")
 fn native_create_panel(form: box<Form>) -> handle<Panel>;
 
@@ -478,6 +745,228 @@ fn native_set_panel_visible(panel: handle<Panel>, visible: bool);
 
 @intrinsic(name="p7lcl.panel.free")
 fn native_free_panel(panel: handle<Panel>);
+
+@intrinsic(name="p7lcl.image.create")
+fn native_create_image(form: box<Form>) -> handle<Image>;
+
+@intrinsic(name="p7lcl.image.set_center")
+fn native_set_image_center(image: handle<Image>, center: bool);
+
+@intrinsic(name="p7lcl.image.center")
+fn native_image_center(image: handle<Image>) -> bool;
+
+@intrinsic(name="p7lcl.image.set_stretch")
+fn native_set_image_stretch(image: handle<Image>, stretch: bool);
+
+@intrinsic(name="p7lcl.image.stretch")
+fn native_image_stretch(image: handle<Image>) -> bool;
+
+@intrinsic(name="p7lcl.image.set_proportional")
+fn native_set_image_proportional(image: handle<Image>, proportional: bool);
+
+@intrinsic(name="p7lcl.image.proportional")
+fn native_image_proportional(image: handle<Image>) -> bool;
+
+@intrinsic(name="p7lcl.image.set_transparent")
+fn native_set_image_transparent(image: handle<Image>, transparent: bool);
+
+@intrinsic(name="p7lcl.image.transparent")
+fn native_image_transparent(image: handle<Image>) -> bool;
+
+@intrinsic(name="p7lcl.image.load_from_file")
+fn native_image_load_from_file(image: handle<Image>, file_name: string);
+
+@intrinsic(name="p7lcl.image.clear")
+fn native_image_clear(image: handle<Image>);
+
+@intrinsic(name="p7lcl.image.picture_width")
+fn native_image_picture_width(image: handle<Image>) -> int;
+
+@intrinsic(name="p7lcl.image.picture_height")
+fn native_image_picture_height(image: handle<Image>) -> int;
+
+@intrinsic(name="p7lcl.image.free")
+fn native_free_image(image: handle<Image>);
+
+@intrinsic(name="p7lcl.timer.create")
+fn native_create_timer(form: box<Form>) -> handle<Timer>;
+
+@intrinsic(name="p7lcl.timer.set_enabled")
+fn native_set_timer_enabled(timer: handle<Timer>, enabled: bool);
+
+@intrinsic(name="p7lcl.timer.enabled")
+fn native_timer_enabled(timer: handle<Timer>) -> bool;
+
+@intrinsic(name="p7lcl.timer.set_interval")
+fn native_set_timer_interval(timer: handle<Timer>, interval: int);
+
+@intrinsic(name="p7lcl.timer.interval")
+fn native_timer_interval(timer: handle<Timer>) -> int;
+
+@intrinsic(name="p7lcl.timer.on_timer")
+fn native_timer_on_timer(timer: handle<Timer>, callback: fn(handle<Component>));
+
+@intrinsic(name="p7lcl.timer.clear_on_timer")
+fn native_timer_clear_on_timer(timer: handle<Timer>);
+
+@intrinsic(name="p7lcl.timer.trigger")
+fn native_timer_trigger(timer: handle<Timer>);
+
+@intrinsic(name="p7lcl.timer.free")
+fn native_free_timer(timer: handle<Timer>);
+
+@intrinsic(name="p7lcl.main_menu.create")
+fn native_create_main_menu(form: box<Form>) -> handle<MainMenu>;
+
+@intrinsic(name="p7lcl.form.set_main_menu")
+fn native_set_form_main_menu(form: box<Form>, menu: handle<MainMenu>);
+
+@intrinsic(name="p7lcl.main_menu.free")
+fn native_free_main_menu(menu: handle<MainMenu>);
+
+@intrinsic(name="p7lcl.menu_item.create")
+fn native_create_menu_item(menu: handle<MainMenu>) -> handle<MenuItem>;
+
+@intrinsic(name="p7lcl.menu_item.create_child")
+fn native_create_submenu_item(parent: handle<MenuItem>) -> handle<MenuItem>;
+
+@intrinsic(name="p7lcl.menu_item.set_caption")
+fn native_set_menu_item_caption(item: handle<MenuItem>, caption: string);
+
+@intrinsic(name="p7lcl.menu_item.caption")
+fn native_menu_item_caption(item: handle<MenuItem>) -> string;
+
+@intrinsic(name="p7lcl.menu_item.set_enabled")
+fn native_set_menu_item_enabled(item: handle<MenuItem>, enabled: bool);
+
+@intrinsic(name="p7lcl.menu_item.enabled")
+fn native_menu_item_enabled(item: handle<MenuItem>) -> bool;
+
+@intrinsic(name="p7lcl.menu_item.set_checked")
+fn native_set_menu_item_checked(item: handle<MenuItem>, checked: bool);
+
+@intrinsic(name="p7lcl.menu_item.checked")
+fn native_menu_item_checked(item: handle<MenuItem>) -> bool;
+
+@intrinsic(name="p7lcl.menu_item.item_count")
+fn native_menu_item_count(item: handle<MenuItem>) -> int;
+
+@intrinsic(name="p7lcl.menu_item.item")
+fn native_menu_item(item: handle<MenuItem>, index: int) -> handle<MenuItem>;
+
+@intrinsic(name="p7lcl.menu_item.on_click")
+fn native_menu_item_on_click(item: handle<MenuItem>, callback: fn(handle<Component>));
+
+@intrinsic(name="p7lcl.menu_item.clear_on_click")
+fn native_menu_item_clear_on_click(item: handle<MenuItem>);
+
+@intrinsic(name="p7lcl.menu_item.click")
+fn native_menu_item_click(item: handle<MenuItem>);
+
+@intrinsic(name="p7lcl.menu_item.free")
+fn native_free_menu_item(item: handle<MenuItem>);
+
+@intrinsic(name="p7lcl.tool_bar.create")
+fn native_create_tool_bar(form: box<Form>) -> handle<ToolBar>;
+
+@intrinsic(name="p7lcl.tool_bar.set_show_captions")
+fn native_set_tool_bar_show_captions(tool_bar: handle<ToolBar>, show: bool);
+
+@intrinsic(name="p7lcl.tool_bar.show_captions")
+fn native_tool_bar_show_captions(tool_bar: handle<ToolBar>) -> bool;
+
+@intrinsic(name="p7lcl.tool_bar.button_count")
+fn native_tool_bar_button_count(tool_bar: handle<ToolBar>) -> int;
+
+@intrinsic(name="p7lcl.tool_bar.free")
+fn native_free_tool_bar(tool_bar: handle<ToolBar>);
+
+@intrinsic(name="p7lcl.tool_button.create")
+fn native_create_tool_button(tool_bar: handle<ToolBar>) -> handle<ToolButton>;
+
+@intrinsic(name="p7lcl.tool_button.set_caption")
+fn native_set_tool_button_caption(button: handle<ToolButton>, caption: string);
+
+@intrinsic(name="p7lcl.tool_button.caption")
+fn native_tool_button_caption(button: handle<ToolButton>) -> string;
+
+@intrinsic(name="p7lcl.tool_button.on_click")
+fn native_tool_button_on_click(button: handle<ToolButton>, callback: fn(handle<Control>));
+
+@intrinsic(name="p7lcl.tool_button.clear_on_click")
+fn native_tool_button_clear_on_click(button: handle<ToolButton>);
+
+@intrinsic(name="p7lcl.tool_button.click")
+fn native_tool_button_click(button: handle<ToolButton>);
+
+@intrinsic(name="p7lcl.tool_button.free")
+fn native_free_tool_button(button: handle<ToolButton>);
+
+@intrinsic(name="p7lcl.status_bar.create")
+fn native_create_status_bar(form: box<Form>) -> handle<StatusBar>;
+
+@intrinsic(name="p7lcl.status_bar.set_simple_text")
+fn native_set_status_bar_simple_text(status_bar: handle<StatusBar>, text: string);
+
+@intrinsic(name="p7lcl.status_bar.simple_text")
+fn native_status_bar_simple_text(status_bar: handle<StatusBar>) -> string;
+
+@intrinsic(name="p7lcl.status_bar.set_simple_panel")
+fn native_set_status_bar_simple_panel(status_bar: handle<StatusBar>, simple: bool);
+
+@intrinsic(name="p7lcl.status_bar.simple_panel")
+fn native_status_bar_simple_panel(status_bar: handle<StatusBar>) -> bool;
+
+@intrinsic(name="p7lcl.status_bar.free")
+fn native_free_status_bar(status_bar: handle<StatusBar>);
+
+@intrinsic(name="p7lcl.open_dialog.create")
+fn native_create_open_dialog(form: box<Form>) -> handle<OpenDialog>;
+
+@intrinsic(name="p7lcl.open_dialog.set_file_name")
+fn native_set_open_dialog_file_name(dialog: handle<OpenDialog>, file_name: string);
+
+@intrinsic(name="p7lcl.open_dialog.file_name")
+fn native_open_dialog_file_name(dialog: handle<OpenDialog>) -> string;
+
+@intrinsic(name="p7lcl.open_dialog.set_filter")
+fn native_set_open_dialog_filter(dialog: handle<OpenDialog>, filter: string);
+
+@intrinsic(name="p7lcl.open_dialog.filter")
+fn native_open_dialog_filter(dialog: handle<OpenDialog>) -> string;
+
+@intrinsic(name="p7lcl.open_dialog.execute")
+fn native_open_dialog_execute(dialog: handle<OpenDialog>) -> bool;
+
+@intrinsic(name="p7lcl.open_dialog.free")
+fn native_free_open_dialog(dialog: handle<OpenDialog>);
+
+@intrinsic(name="p7lcl.save_dialog.create")
+fn native_create_save_dialog(form: box<Form>) -> handle<SaveDialog>;
+
+@intrinsic(name="p7lcl.save_dialog.set_file_name")
+fn native_set_save_dialog_file_name(dialog: handle<SaveDialog>, file_name: string);
+
+@intrinsic(name="p7lcl.save_dialog.file_name")
+fn native_save_dialog_file_name(dialog: handle<SaveDialog>) -> string;
+
+@intrinsic(name="p7lcl.save_dialog.execute")
+fn native_save_dialog_execute(dialog: handle<SaveDialog>) -> bool;
+
+@intrinsic(name="p7lcl.save_dialog.free")
+fn native_free_save_dialog(dialog: handle<SaveDialog>);
+
+@intrinsic(name="p7lcl.group_box.create")
+fn native_create_group_box(form: box<Form>) -> handle<GroupBox>;
+
+@intrinsic(name="p7lcl.group_box.set_caption")
+fn native_set_group_box_caption(group_box: handle<GroupBox>, caption: string);
+
+@intrinsic(name="p7lcl.group_box.caption")
+fn native_group_box_caption(group_box: handle<GroupBox>) -> string;
+
+@intrinsic(name="p7lcl.group_box.free")
+fn native_free_group_box(group_box: handle<GroupBox>);
 
 pub fn initialize() {
     native_initialize()
@@ -787,6 +1276,78 @@ pub fn free_button(button: handle<Button>) {
     native_free_button(button)
 }
 
+pub fn new_checkbox(form: box<Form>) -> handle<CheckBox> {
+    native_create_checkbox(form)
+}
+
+pub fn set_checkbox_caption(checkbox: handle<CheckBox>, caption: string) {
+    native_set_checkbox_caption(checkbox, caption)
+}
+
+pub fn checkbox_caption(checkbox: handle<CheckBox>) -> string {
+    native_checkbox_caption(checkbox)
+}
+
+pub fn set_checkbox_checked(checkbox: handle<CheckBox>, checked: bool) {
+    native_set_checkbox_checked(checkbox, checked)
+}
+
+pub fn checkbox_checked(checkbox: handle<CheckBox>) -> bool {
+    native_checkbox_checked(checkbox)
+}
+
+pub fn checkbox_on_change(checkbox: handle<CheckBox>, callback: fn(handle<Control>)) {
+    native_checkbox_on_change(checkbox, callback)
+}
+
+pub fn checkbox_clear_on_change(checkbox: handle<CheckBox>) {
+    native_checkbox_clear_on_change(checkbox)
+}
+
+pub fn click_checkbox(checkbox: handle<CheckBox>) {
+    native_click_checkbox(checkbox)
+}
+
+pub fn free_checkbox(checkbox: handle<CheckBox>) {
+    native_free_checkbox(checkbox)
+}
+
+pub fn new_radio_button(form: box<Form>) -> handle<RadioButton> {
+    native_create_radio_button(form)
+}
+
+pub fn set_radio_button_caption(radio_button: handle<RadioButton>, caption: string) {
+    native_set_radio_button_caption(radio_button, caption)
+}
+
+pub fn radio_button_caption(radio_button: handle<RadioButton>) -> string {
+    native_radio_button_caption(radio_button)
+}
+
+pub fn set_radio_button_checked(radio_button: handle<RadioButton>, checked: bool) {
+    native_set_radio_button_checked(radio_button, checked)
+}
+
+pub fn radio_button_checked(radio_button: handle<RadioButton>) -> bool {
+    native_radio_button_checked(radio_button)
+}
+
+pub fn radio_button_on_change(radio_button: handle<RadioButton>, callback: fn(handle<Control>)) {
+    native_radio_button_on_change(radio_button, callback)
+}
+
+pub fn radio_button_clear_on_change(radio_button: handle<RadioButton>) {
+    native_radio_button_clear_on_change(radio_button)
+}
+
+pub fn click_radio_button(radio_button: handle<RadioButton>) {
+    native_click_radio_button(radio_button)
+}
+
+pub fn free_radio_button(radio_button: handle<RadioButton>) {
+    native_free_radio_button(radio_button)
+}
+
 pub fn new_label(form: box<Form>) -> handle<Label> {
     native_create_label(form)
 }
@@ -911,6 +1472,130 @@ pub fn free_edit(edit: handle<Edit>) {
     native_free_edit(edit)
 }
 
+pub fn new_memo(form: box<Form>) -> handle<Memo> {
+    native_create_memo(form)
+}
+
+pub fn set_memo_text(memo: handle<Memo>, text: string) {
+    native_set_memo_text(memo, text)
+}
+
+pub fn memo_text(memo: handle<Memo>) -> string {
+    native_memo_text(memo)
+}
+
+pub fn memo_on_change(memo: handle<Memo>, callback: fn(handle<Control>)) {
+    native_memo_on_change(memo, callback)
+}
+
+pub fn memo_clear_on_change(memo: handle<Memo>) {
+    native_memo_clear_on_change(memo)
+}
+
+pub fn memo_trigger_change(memo: handle<Memo>) {
+    native_memo_trigger_change(memo)
+}
+
+pub fn free_memo(memo: handle<Memo>) {
+    native_free_memo(memo)
+}
+
+pub fn new_list_box(form: box<Form>) -> handle<ListBox> {
+    native_create_list_box(form)
+}
+
+pub fn list_box_item_count(list_box: handle<ListBox>) -> int {
+    native_list_box_item_count(list_box)
+}
+
+pub fn list_box_item(list_box: handle<ListBox>, index: int) -> string {
+    native_list_box_item(list_box, index)
+}
+
+pub fn list_box_add_item(list_box: handle<ListBox>, item: string) -> int {
+    native_list_box_add_item(list_box, item)
+}
+
+pub fn list_box_set_item(list_box: handle<ListBox>, index: int, item: string) {
+    native_list_box_set_item(list_box, index, item)
+}
+
+pub fn list_box_delete_item(list_box: handle<ListBox>, index: int) {
+    native_list_box_delete_item(list_box, index)
+}
+
+pub fn list_box_clear_items(list_box: handle<ListBox>) {
+    native_list_box_clear_items(list_box)
+}
+
+pub fn list_box_item_index(list_box: handle<ListBox>) -> int {
+    native_list_box_item_index(list_box)
+}
+
+pub fn list_box_select_index(list_box: handle<ListBox>, index: int) {
+    native_list_box_select_index(list_box, index)
+}
+
+pub fn list_box_on_selection_change(list_box: handle<ListBox>, callback: fn(handle<Control>)) {
+    native_list_box_on_selection_change(list_box, callback)
+}
+
+pub fn list_box_clear_on_selection_change(list_box: handle<ListBox>) {
+    native_list_box_clear_on_selection_change(list_box)
+}
+
+pub fn free_list_box(list_box: handle<ListBox>) {
+    native_free_list_box(list_box)
+}
+
+pub fn new_combo_box(form: box<Form>) -> handle<ComboBox> {
+    native_create_combo_box(form)
+}
+
+pub fn combo_box_item_count(combo_box: handle<ComboBox>) -> int {
+    native_combo_box_item_count(combo_box)
+}
+
+pub fn combo_box_item(combo_box: handle<ComboBox>, index: int) -> string {
+    native_combo_box_item(combo_box, index)
+}
+
+pub fn combo_box_add_item(combo_box: handle<ComboBox>, item: string) -> int {
+    native_combo_box_add_item(combo_box, item)
+}
+
+pub fn combo_box_set_item(combo_box: handle<ComboBox>, index: int, item: string) {
+    native_combo_box_set_item(combo_box, index, item)
+}
+
+pub fn combo_box_delete_item(combo_box: handle<ComboBox>, index: int) {
+    native_combo_box_delete_item(combo_box, index)
+}
+
+pub fn combo_box_clear_items(combo_box: handle<ComboBox>) {
+    native_combo_box_clear_items(combo_box)
+}
+
+pub fn combo_box_item_index(combo_box: handle<ComboBox>) -> int {
+    native_combo_box_item_index(combo_box)
+}
+
+pub fn combo_box_select_index(combo_box: handle<ComboBox>, index: int) {
+    native_combo_box_select_index(combo_box, index)
+}
+
+pub fn combo_box_on_change(combo_box: handle<ComboBox>, callback: fn(handle<Control>)) {
+    native_combo_box_on_change(combo_box, callback)
+}
+
+pub fn combo_box_clear_on_change(combo_box: handle<ComboBox>) {
+    native_combo_box_clear_on_change(combo_box)
+}
+
+pub fn free_combo_box(combo_box: handle<ComboBox>) {
+    native_free_combo_box(combo_box)
+}
+
 pub fn new_panel(form: box<Form>) -> handle<Panel> {
     native_create_panel(form)
 }
@@ -933,4 +1618,300 @@ pub fn set_panel_visible(panel: handle<Panel>, visible: bool) {
 
 pub fn free_panel(panel: handle<Panel>) {
     native_free_panel(panel)
+}
+
+pub fn new_image(form: box<Form>) -> handle<Image> {
+    native_create_image(form)
+}
+
+pub fn set_image_center(image: handle<Image>, center: bool) {
+    native_set_image_center(image, center)
+}
+
+pub fn image_center(image: handle<Image>) -> bool {
+    native_image_center(image)
+}
+
+pub fn set_image_stretch(image: handle<Image>, stretch: bool) {
+    native_set_image_stretch(image, stretch)
+}
+
+pub fn image_stretch(image: handle<Image>) -> bool {
+    native_image_stretch(image)
+}
+
+pub fn set_image_proportional(image: handle<Image>, proportional: bool) {
+    native_set_image_proportional(image, proportional)
+}
+
+pub fn image_proportional(image: handle<Image>) -> bool {
+    native_image_proportional(image)
+}
+
+pub fn set_image_transparent(image: handle<Image>, transparent: bool) {
+    native_set_image_transparent(image, transparent)
+}
+
+pub fn image_transparent(image: handle<Image>) -> bool {
+    native_image_transparent(image)
+}
+
+pub fn image_load_from_file(image: handle<Image>, file_name: string) {
+    native_image_load_from_file(image, file_name)
+}
+
+pub fn image_clear(image: handle<Image>) {
+    native_image_clear(image)
+}
+
+pub fn image_picture_width(image: handle<Image>) -> int {
+    native_image_picture_width(image)
+}
+
+pub fn image_picture_height(image: handle<Image>) -> int {
+    native_image_picture_height(image)
+}
+
+pub fn free_image(image: handle<Image>) {
+    native_free_image(image)
+}
+
+pub fn new_timer(form: box<Form>) -> handle<Timer> {
+    native_create_timer(form)
+}
+
+pub fn set_timer_enabled(timer: handle<Timer>, enabled: bool) {
+    native_set_timer_enabled(timer, enabled)
+}
+
+pub fn timer_enabled(timer: handle<Timer>) -> bool {
+    native_timer_enabled(timer)
+}
+
+pub fn set_timer_interval(timer: handle<Timer>, interval: int) {
+    native_set_timer_interval(timer, interval)
+}
+
+pub fn timer_interval(timer: handle<Timer>) -> int {
+    native_timer_interval(timer)
+}
+
+pub fn timer_on_timer(timer: handle<Timer>, callback: fn(handle<Component>)) {
+    native_timer_on_timer(timer, callback)
+}
+
+pub fn timer_clear_on_timer(timer: handle<Timer>) {
+    native_timer_clear_on_timer(timer)
+}
+
+pub fn timer_trigger(timer: handle<Timer>) {
+    native_timer_trigger(timer)
+}
+
+pub fn free_timer(timer: handle<Timer>) {
+    native_free_timer(timer)
+}
+
+pub fn new_main_menu(form: box<Form>) -> handle<MainMenu> {
+    native_create_main_menu(form)
+}
+
+pub fn set_form_main_menu(form: box<Form>, menu: handle<MainMenu>) {
+    native_set_form_main_menu(form, menu)
+}
+
+pub fn free_main_menu(menu: handle<MainMenu>) {
+    native_free_main_menu(menu)
+}
+
+pub fn new_menu_item(menu: handle<MainMenu>) -> handle<MenuItem> {
+    native_create_menu_item(menu)
+}
+
+pub fn new_submenu_item(parent: handle<MenuItem>) -> handle<MenuItem> {
+    native_create_submenu_item(parent)
+}
+
+pub fn set_menu_item_caption(item: handle<MenuItem>, caption: string) {
+    native_set_menu_item_caption(item, caption)
+}
+
+pub fn menu_item_caption(item: handle<MenuItem>) -> string {
+    native_menu_item_caption(item)
+}
+
+pub fn set_menu_item_enabled(item: handle<MenuItem>, enabled: bool) {
+    native_set_menu_item_enabled(item, enabled)
+}
+
+pub fn menu_item_enabled(item: handle<MenuItem>) -> bool {
+    native_menu_item_enabled(item)
+}
+
+pub fn set_menu_item_checked(item: handle<MenuItem>, checked: bool) {
+    native_set_menu_item_checked(item, checked)
+}
+
+pub fn menu_item_checked(item: handle<MenuItem>) -> bool {
+    native_menu_item_checked(item)
+}
+
+pub fn menu_item_count(item: handle<MenuItem>) -> int {
+    native_menu_item_count(item)
+}
+
+pub fn menu_item(item: handle<MenuItem>, index: int) -> handle<MenuItem> {
+    native_menu_item(item, index)
+}
+
+pub fn menu_item_on_click(item: handle<MenuItem>, callback: fn(handle<Component>)) {
+    native_menu_item_on_click(item, callback)
+}
+
+pub fn menu_item_clear_on_click(item: handle<MenuItem>) {
+    native_menu_item_clear_on_click(item)
+}
+
+pub fn click_menu_item(item: handle<MenuItem>) {
+    native_menu_item_click(item)
+}
+
+pub fn free_menu_item(item: handle<MenuItem>) {
+    native_free_menu_item(item)
+}
+
+pub fn new_tool_bar(form: box<Form>) -> handle<ToolBar> {
+    native_create_tool_bar(form)
+}
+
+pub fn set_tool_bar_show_captions(tool_bar: handle<ToolBar>, show: bool) {
+    native_set_tool_bar_show_captions(tool_bar, show)
+}
+
+pub fn tool_bar_show_captions(tool_bar: handle<ToolBar>) -> bool {
+    native_tool_bar_show_captions(tool_bar)
+}
+
+pub fn tool_bar_button_count(tool_bar: handle<ToolBar>) -> int {
+    native_tool_bar_button_count(tool_bar)
+}
+
+pub fn free_tool_bar(tool_bar: handle<ToolBar>) {
+    native_free_tool_bar(tool_bar)
+}
+
+pub fn new_tool_button(tool_bar: handle<ToolBar>) -> handle<ToolButton> {
+    native_create_tool_button(tool_bar)
+}
+
+pub fn set_tool_button_caption(button: handle<ToolButton>, caption: string) {
+    native_set_tool_button_caption(button, caption)
+}
+
+pub fn tool_button_caption(button: handle<ToolButton>) -> string {
+    native_tool_button_caption(button)
+}
+
+pub fn tool_button_on_click(button: handle<ToolButton>, callback: fn(handle<Control>)) {
+    native_tool_button_on_click(button, callback)
+}
+
+pub fn tool_button_clear_on_click(button: handle<ToolButton>) {
+    native_tool_button_clear_on_click(button)
+}
+
+pub fn click_tool_button(button: handle<ToolButton>) {
+    native_tool_button_click(button)
+}
+
+pub fn free_tool_button(button: handle<ToolButton>) {
+    native_free_tool_button(button)
+}
+
+pub fn new_status_bar(form: box<Form>) -> handle<StatusBar> {
+    native_create_status_bar(form)
+}
+
+pub fn set_status_bar_simple_text(status_bar: handle<StatusBar>, text: string) {
+    native_set_status_bar_simple_text(status_bar, text)
+}
+
+pub fn status_bar_simple_text(status_bar: handle<StatusBar>) -> string {
+    native_status_bar_simple_text(status_bar)
+}
+
+pub fn set_status_bar_simple_panel(status_bar: handle<StatusBar>, simple: bool) {
+    native_set_status_bar_simple_panel(status_bar, simple)
+}
+
+pub fn status_bar_simple_panel(status_bar: handle<StatusBar>) -> bool {
+    native_status_bar_simple_panel(status_bar)
+}
+
+pub fn free_status_bar(status_bar: handle<StatusBar>) {
+    native_free_status_bar(status_bar)
+}
+
+pub fn new_open_dialog(form: box<Form>) -> handle<OpenDialog> {
+    native_create_open_dialog(form)
+}
+
+pub fn set_open_dialog_file_name(dialog: handle<OpenDialog>, file_name: string) {
+    native_set_open_dialog_file_name(dialog, file_name)
+}
+
+pub fn open_dialog_file_name(dialog: handle<OpenDialog>) -> string {
+    native_open_dialog_file_name(dialog)
+}
+
+pub fn set_open_dialog_filter(dialog: handle<OpenDialog>, filter: string) {
+    native_set_open_dialog_filter(dialog, filter)
+}
+
+pub fn open_dialog_filter(dialog: handle<OpenDialog>) -> string {
+    native_open_dialog_filter(dialog)
+}
+
+pub fn open_dialog_execute(dialog: handle<OpenDialog>) -> bool {
+    native_open_dialog_execute(dialog)
+}
+
+pub fn free_open_dialog(dialog: handle<OpenDialog>) {
+    native_free_open_dialog(dialog)
+}
+
+pub fn new_save_dialog(form: box<Form>) -> handle<SaveDialog> {
+    native_create_save_dialog(form)
+}
+
+pub fn set_save_dialog_file_name(dialog: handle<SaveDialog>, file_name: string) {
+    native_set_save_dialog_file_name(dialog, file_name)
+}
+
+pub fn save_dialog_file_name(dialog: handle<SaveDialog>) -> string {
+    native_save_dialog_file_name(dialog)
+}
+
+pub fn save_dialog_execute(dialog: handle<SaveDialog>) -> bool {
+    native_save_dialog_execute(dialog)
+}
+
+pub fn free_save_dialog(dialog: handle<SaveDialog>) {
+    native_free_save_dialog(dialog)
+}
+
+pub fn new_group_box(form: box<Form>) -> handle<GroupBox> {
+    native_create_group_box(form)
+}
+
+pub fn set_group_box_caption(group_box: handle<GroupBox>, caption: string) {
+    native_set_group_box_caption(group_box, caption)
+}
+
+pub fn group_box_caption(group_box: handle<GroupBox>) -> string {
+    native_group_box_caption(group_box)
+}
+
+pub fn free_group_box(group_box: handle<GroupBox>) {
+    native_free_group_box(group_box)
 }
