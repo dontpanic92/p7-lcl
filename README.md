@@ -5,10 +5,14 @@ Protosept bindings for the Lazarus Component Library (LCL).
 The native binding currently provides:
 
 - LCL application initialization.
+- A generated foreign hierarchy matching `TObject` → `TComponent` →
+  `TControl` → `TWinControl`, with forms and standard controls under their
+  real bases.
 - Owning `TForm` foreign values backed by a generation-safe Pascal object table.
 - Forms with caption, bounds, show, close, and deterministic release.
-- Form-owned `TButton`, `TLabel`, `TEdit`, and `TPanel` controls with common
-  text, bounds, visibility, enabled, and focus operations.
+- Form-owned `TButton`, `TLabel`, `TEdit`, and `TPanel` controls with generated
+  owner/parent, name, geometry, visibility, enabled, focus, tab-order, align,
+  anchor, and color operations.
 - Persistent rooted `OnClick`, `OnChange`, `OnClose`, `OnCloseQuery`, and
   `OnKeyPress` callbacks, including re-entrant calls and mutable event results.
 - `examples/hello` is a separate executable package with a path dependency on
@@ -25,6 +29,12 @@ lcl.set_form_bounds(form, 120, 120, 420, 220);
 let label = lcl.new_label(form);
 let edit = lcl.new_edit(form);
 let button = lcl.new_button(form);
+let panel = lcl.new_panel(form);
+lcl.set_control_parent(label, panel);
+lcl.set_control_parent(edit, panel);
+lcl.set_control_parent(button, panel);
+lcl.set_control_bounds(panel, 16, 16, 388, 160);
+lcl.set_control_anchors(panel, lcl.Anchors.Left | lcl.Anchors.Right);
 lcl.button_on_click(button, () => {
     lcl.set_label_caption(label, lcl.edit_text(edit));
 });
@@ -44,6 +54,12 @@ next LCL message-pump turn.
 `box<lcl.Form>` owns its form. Controls are returned as persistent non-owning
 `handle<lcl.*>` values. Their LCL owner is the form, and owner destruction
 invalidates every child handle before it can be used again.
+
+Common operations accept base handles, so derived controls upcast implicitly;
+checked `as handle<...>` downcasts validate the real LCL type tag. Owner and
+parent getters return borrowed base handles with no finalizer. `Align`,
+`Anchors`, and `Color` use fixed-width values; invalid align values, anchor
+bits, negative extents, and tab orders produce explicit native errors.
 
 Event setters root closures until the event is replaced, explicitly cleared,
 or the owning form/control is released. Close-query and key-press callbacks

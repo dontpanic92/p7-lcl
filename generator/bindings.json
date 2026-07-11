@@ -1,10 +1,14 @@
 {
   "foreign_types": [
-    {"p7_name": "Form", "type_tag": "lcl.TForm", "dispatcher": "p7lcl.form.unused", "finalizer": "p7lcl.form.finalize"},
-    {"p7_name": "Button", "type_tag": "lcl.TButton", "dispatcher": "p7lcl.button.unused", "finalizer": "p7lcl.button.finalize"},
-    {"p7_name": "Label", "type_tag": "lcl.TLabel", "dispatcher": "p7lcl.label.unused", "finalizer": "p7lcl.label.finalize"},
-    {"p7_name": "Edit", "type_tag": "lcl.TEdit", "dispatcher": "p7lcl.edit.unused", "finalizer": "p7lcl.edit.finalize"},
-    {"p7_name": "Panel", "type_tag": "lcl.TPanel", "dispatcher": "p7lcl.panel.unused", "finalizer": "p7lcl.panel.finalize"}
+    {"p7_name": "Object", "type_tag": "lcl.TObject", "dispatcher": "p7lcl.object.unused"},
+    {"p7_name": "Component", "type_tag": "lcl.TComponent", "dispatcher": "p7lcl.component.unused", "bases": ["Object"]},
+    {"p7_name": "Control", "type_tag": "lcl.TControl", "dispatcher": "p7lcl.control.unused", "bases": ["Component"]},
+    {"p7_name": "WinControl", "type_tag": "lcl.TWinControl", "dispatcher": "p7lcl.win_control.unused", "bases": ["Control"]},
+    {"p7_name": "Form", "type_tag": "lcl.TForm", "dispatcher": "p7lcl.form.unused", "finalizer": "p7lcl.form.finalize", "bases": ["WinControl"]},
+    {"p7_name": "Button", "type_tag": "lcl.TButton", "dispatcher": "p7lcl.button.unused", "finalizer": "p7lcl.button.finalize", "bases": ["WinControl"]},
+    {"p7_name": "Label", "type_tag": "lcl.TLabel", "dispatcher": "p7lcl.label.unused", "finalizer": "p7lcl.label.finalize", "bases": ["Control"]},
+    {"p7_name": "Edit", "type_tag": "lcl.TEdit", "dispatcher": "p7lcl.edit.unused", "finalizer": "p7lcl.edit.finalize", "bases": ["WinControl"]},
+    {"p7_name": "Panel", "type_tag": "lcl.TPanel", "dispatcher": "p7lcl.panel.unused", "finalizer": "p7lcl.panel.finalize", "bases": ["WinControl"]}
   ],
   "functions": [
     {"intrinsic": "p7lcl.application.initialize", "callback": "ApplicationInitialize", "native_name": "native_initialize", "public_name": "initialize", "params": []},
@@ -13,6 +17,35 @@
     {"intrinsic": "p7lcl.application.invoke", "callback": "ApplicationInvoke", "native_name": "native_invoke", "public_name": "invoke", "params": [{"name": "callback", "p7": "fn()", "native": "closure"}]},
     {"intrinsic": "p7lcl.application.queue", "callback": "ApplicationQueue", "native_name": "native_queue", "public_name": "queue", "params": [{"name": "callback", "p7": "fn()", "native": "closure"}]},
     {"intrinsic": "p7lcl.application.terminate", "callback": "ApplicationTerminate", "native_name": "native_terminate", "public_name": "terminate", "params": []},
+
+    {"intrinsic": "p7lcl.component.set_name", "callback": "ComponentSetName", "native_name": "native_set_component_name", "public_name": "set_component_name", "params": [{"name": "component", "p7": "handle<Component>", "native": "foreign"}, {"name": "name", "p7": "string", "native": "string"}]},
+    {"intrinsic": "p7lcl.component.name", "callback": "ComponentName", "native_name": "native_component_name", "public_name": "component_name", "params": [{"name": "component", "p7": "handle<Component>", "native": "foreign"}], "result_p7": "string", "result_native": "string"},
+    {"intrinsic": "p7lcl.component.owner", "callback": "ComponentOwner", "native_name": "native_component_owner", "public_name": "component_owner", "params": [{"name": "component", "p7": "handle<Component>", "native": "foreign"}], "result_p7": "handle<Component>", "result_native": "foreign"},
+
+    {"intrinsic": "p7lcl.control.parent", "callback": "ControlParent", "native_name": "native_control_parent", "public_name": "control_parent", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}], "result_p7": "handle<WinControl>", "result_native": "foreign"},
+    {"intrinsic": "p7lcl.control.set_parent", "callback": "ControlSetParent", "native_name": "native_set_control_parent", "public_name": "set_control_parent", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}, {"name": "parent", "p7": "handle<WinControl>", "native": "foreign"}]},
+    {"intrinsic": "p7lcl.control.left", "callback": "ControlLeft", "native_name": "native_control_left", "public_name": "control_left", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}], "result_p7": "ffi.i32", "result_native": "i32"},
+    {"intrinsic": "p7lcl.control.top", "callback": "ControlTop", "native_name": "native_control_top", "public_name": "control_top", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}], "result_p7": "ffi.i32", "result_native": "i32"},
+    {"intrinsic": "p7lcl.control.width", "callback": "ControlWidth", "native_name": "native_control_width", "public_name": "control_width", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}], "result_p7": "ffi.i32", "result_native": "i32"},
+    {"intrinsic": "p7lcl.control.height", "callback": "ControlHeight", "native_name": "native_control_height", "public_name": "control_height", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}], "result_p7": "ffi.i32", "result_native": "i32"},
+    {"intrinsic": "p7lcl.control.set_bounds", "callback": "ControlSetBounds", "native_name": "native_set_control_bounds", "public_name": "set_control_bounds", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}, {"name": "left", "p7": "ffi.i32", "native": "i32"}, {"name": "top", "p7": "ffi.i32", "native": "i32"}, {"name": "width", "p7": "ffi.i32", "native": "i32"}, {"name": "height", "p7": "ffi.i32", "native": "i32"}]},
+    {"intrinsic": "p7lcl.control.visible", "callback": "ControlVisible", "native_name": "native_control_visible", "public_name": "control_visible", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}], "result_p7": "bool", "result_native": "bool"},
+    {"intrinsic": "p7lcl.control.set_visible", "callback": "ControlSetVisible", "native_name": "native_set_control_visible", "public_name": "set_control_visible", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}, {"name": "visible", "p7": "bool", "native": "bool"}]},
+    {"intrinsic": "p7lcl.control.enabled", "callback": "ControlEnabled", "native_name": "native_control_enabled", "public_name": "control_enabled", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}], "result_p7": "bool", "result_native": "bool"},
+    {"intrinsic": "p7lcl.control.set_enabled", "callback": "ControlSetEnabled", "native_name": "native_set_control_enabled", "public_name": "set_control_enabled", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}, {"name": "enabled", "p7": "bool", "native": "bool"}]},
+    {"intrinsic": "p7lcl.control.show", "callback": "ControlShow", "native_name": "native_show_control", "public_name": "show_control", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}]},
+    {"intrinsic": "p7lcl.control.hide", "callback": "ControlHide", "native_name": "native_hide_control", "public_name": "hide_control", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}]},
+    {"intrinsic": "p7lcl.control.align", "callback": "ControlAlign", "native_name": "native_control_align", "public_name": "control_align", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}], "result_p7": "Align", "native_result_p7": "ffi.i32", "result_wrap": "Align(", "result_wrap_suffix": ")", "result_native": "i32"},
+    {"intrinsic": "p7lcl.control.set_align", "callback": "ControlSetAlign", "native_name": "native_set_control_align", "public_name": "set_control_align", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}, {"name": "align", "p7": "Align", "native_p7": "ffi.i32", "native_arg": "align.value()", "native": "i32"}]},
+    {"intrinsic": "p7lcl.control.anchors", "callback": "ControlAnchors", "native_name": "native_control_anchors", "public_name": "control_anchors", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}], "result_p7": "Anchors", "native_result_p7": "ffi.u32", "result_wrap": "Anchors(", "result_wrap_suffix": ")", "result_native": "u32"},
+    {"intrinsic": "p7lcl.control.set_anchors", "callback": "ControlSetAnchors", "native_name": "native_set_control_anchors", "public_name": "set_control_anchors", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}, {"name": "anchors", "p7": "Anchors", "native_p7": "ffi.u32", "native_arg": "anchors.bits()", "native": "u32"}]},
+    {"intrinsic": "p7lcl.control.color", "callback": "ControlColor", "native_name": "native_control_color", "public_name": "control_color", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}], "result_p7": "Color", "native_result_p7": "ffi.i32", "result_wrap": "Color(", "result_wrap_suffix": ")", "result_native": "i32"},
+    {"intrinsic": "p7lcl.control.set_color", "callback": "ControlSetColor", "native_name": "native_set_control_color", "public_name": "set_control_color", "params": [{"name": "control", "p7": "handle<Control>", "native": "foreign"}, {"name": "color", "p7": "Color", "native_p7": "ffi.i32", "native_arg": "color.value()", "native": "i32"}]},
+
+    {"intrinsic": "p7lcl.win_control.can_focus", "callback": "WinControlCanFocus", "native_name": "native_win_control_can_focus", "public_name": "win_control_can_focus", "params": [{"name": "control", "p7": "handle<WinControl>", "native": "foreign"}], "result_p7": "bool", "result_native": "bool"},
+    {"intrinsic": "p7lcl.win_control.set_focus", "callback": "WinControlSetFocus", "native_name": "native_set_win_control_focus", "public_name": "set_win_control_focus", "params": [{"name": "control", "p7": "handle<WinControl>", "native": "foreign"}]},
+    {"intrinsic": "p7lcl.win_control.tab_order", "callback": "WinControlTabOrder", "native_name": "native_win_control_tab_order", "public_name": "win_control_tab_order", "params": [{"name": "control", "p7": "handle<WinControl>", "native": "foreign"}], "result_p7": "ffi.i32", "result_native": "i32"},
+    {"intrinsic": "p7lcl.win_control.set_tab_order", "callback": "WinControlSetTabOrder", "native_name": "native_set_win_control_tab_order", "public_name": "set_win_control_tab_order", "params": [{"name": "control", "p7": "handle<WinControl>", "native": "foreign"}, {"name": "tab_order", "p7": "ffi.i32", "native": "i32"}]},
 
     {"intrinsic": "p7lcl.form.create", "callback": "FormCreate", "native_name": "native_create_form", "public_name": "new_form", "params": [], "result_p7": "box<Form>", "result_native": "foreign"},
     {"intrinsic": "p7lcl.form.set_caption", "callback": "FormSetCaption", "native_name": "native_set_form_caption", "public_name": "set_form_caption", "params": [{"name": "form", "p7": "box<Form>", "native": "foreign"}, {"name": "caption", "p7": "string", "native": "string"}]},

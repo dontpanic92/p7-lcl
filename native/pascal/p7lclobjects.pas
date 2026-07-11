@@ -16,6 +16,8 @@ procedure ConfigureObjectInvalidation(InvalidateHandle: TP7InvalidateRuntimeHand
 function AddObject(Instance: TObject; Runtime: Pointer; const TypeTag: UTF8String): Int64;
 function FindObject(Handle: Int64; ExpectedClass: TClass): TObject;
 function FindObjectOrNil(Handle: Int64; ExpectedClass: TClass): TObject;
+function FindObjectHandle(Instance: TObject; out Handle: Int64;
+  out TypeTag: UTF8String): Boolean;
 function DetachObject(Handle: Int64): TObject;
 procedure ReleaseObject(Handle: Int64);
 
@@ -174,6 +176,23 @@ begin
      not ObjectSlots[Index].Instance.InheritsFrom(ExpectedClass) then
     Exit(nil);
   Result := ObjectSlots[Index].Instance;
+end;
+
+function FindObjectHandle(Instance: TObject; out Handle: Int64;
+  out TypeTag: UTF8String): Boolean;
+var
+  Index: Integer;
+begin
+  for Index := 0 to High(ObjectSlots) do
+    if ObjectSlots[Index].Instance = Instance then
+    begin
+      Handle := EncodeHandle(LongWord(Index), ObjectSlots[Index].Generation);
+      TypeTag := ObjectSlots[Index].TypeTag;
+      Exit(True);
+    end;
+  Handle := 0;
+  TypeTag := '';
+  Result := False;
 end;
 
 procedure ReleaseObject(Handle: Int64);

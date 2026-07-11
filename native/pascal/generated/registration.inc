@@ -4,55 +4,81 @@ function RegisterGeneratedFunctions(Api: PP7HostApi): TP7Status;
 var
   Params3: array[0..0] of LongWord;
   Params4: array[0..0] of LongWord;
-  Params7: array[0..1] of LongWord;
+  Params6: array[0..1] of LongWord;
+  Params7: array[0..0] of LongWord;
   Params8: array[0..0] of LongWord;
-  Params9: array[0..4] of LongWord;
-  Params10: array[0..0] of LongWord;
+  Params9: array[0..0] of LongWord;
+  Params10: array[0..1] of LongWord;
   Params11: array[0..0] of LongWord;
-  Params12: array[0..1] of LongWord;
+  Params12: array[0..0] of LongWord;
   Params13: array[0..0] of LongWord;
-  Params14: array[0..1] of LongWord;
-  Params15: array[0..0] of LongWord;
+  Params14: array[0..0] of LongWord;
+  Params15: array[0..4] of LongWord;
   Params16: array[0..0] of LongWord;
-  Params17: array[0..0] of LongWord;
-  Params18: array[0..1] of LongWord;
-  Params19: array[0..4] of LongWord;
-  Params20: array[0..1] of LongWord;
-  Params21: array[0..1] of LongWord;
-  Params22: array[0..1] of LongWord;
-  Params23: array[0..0] of LongWord;
+  Params17: array[0..1] of LongWord;
+  Params18: array[0..0] of LongWord;
+  Params19: array[0..1] of LongWord;
+  Params20: array[0..0] of LongWord;
+  Params21: array[0..0] of LongWord;
+  Params22: array[0..0] of LongWord;
+  Params23: array[0..1] of LongWord;
   Params24: array[0..0] of LongWord;
-  Params25: array[0..0] of LongWord;
+  Params25: array[0..1] of LongWord;
   Params26: array[0..0] of LongWord;
   Params27: array[0..1] of LongWord;
   Params28: array[0..0] of LongWord;
-  Params29: array[0..4] of LongWord;
-  Params30: array[0..1] of LongWord;
-  Params31: array[0..0] of LongWord;
-  Params32: array[0..0] of LongWord;
+  Params29: array[0..0] of LongWord;
+  Params30: array[0..0] of LongWord;
+  Params31: array[0..1] of LongWord;
   Params33: array[0..1] of LongWord;
   Params34: array[0..0] of LongWord;
   Params35: array[0..4] of LongWord;
-  Params36: array[0..1] of LongWord;
-  Params37: array[0..1] of LongWord;
-  Params38: array[0..0] of LongWord;
-  Params39: array[0..1] of LongWord;
-  Params40: array[0..0] of LongWord;
-  Params41: array[0..1] of LongWord;
+  Params36: array[0..0] of LongWord;
+  Params37: array[0..0] of LongWord;
+  Params38: array[0..1] of LongWord;
+  Params39: array[0..0] of LongWord;
+  Params40: array[0..1] of LongWord;
+  Params41: array[0..0] of LongWord;
   Params42: array[0..0] of LongWord;
-  Params43: array[0..1] of LongWord;
-  Params44: array[0..0] of LongWord;
-  Params45: array[0..0] of LongWord;
+  Params43: array[0..0] of LongWord;
+  Params44: array[0..1] of LongWord;
+  Params45: array[0..4] of LongWord;
   Params46: array[0..1] of LongWord;
-  Params47: array[0..4] of LongWord;
+  Params47: array[0..1] of LongWord;
   Params48: array[0..1] of LongWord;
-  Params49: array[0..1] of LongWord;
+  Params49: array[0..0] of LongWord;
   Params50: array[0..0] of LongWord;
-  Params51: array[0..1] of LongWord;
-  Params52: array[0..1] of LongWord;
+  Params51: array[0..0] of LongWord;
+  Params52: array[0..0] of LongWord;
   Params53: array[0..1] of LongWord;
-  Params54: array[0..1] of LongWord;
-  Params55: array[0..1] of LongWord;
+  Params54: array[0..0] of LongWord;
+  Params55: array[0..4] of LongWord;
+  Params56: array[0..1] of LongWord;
+  Params57: array[0..0] of LongWord;
+  Params58: array[0..0] of LongWord;
+  Params59: array[0..1] of LongWord;
+  Params60: array[0..0] of LongWord;
+  Params61: array[0..4] of LongWord;
+  Params62: array[0..1] of LongWord;
+  Params63: array[0..1] of LongWord;
+  Params64: array[0..0] of LongWord;
+  Params65: array[0..1] of LongWord;
+  Params66: array[0..0] of LongWord;
+  Params67: array[0..1] of LongWord;
+  Params68: array[0..0] of LongWord;
+  Params69: array[0..1] of LongWord;
+  Params70: array[0..0] of LongWord;
+  Params71: array[0..0] of LongWord;
+  Params72: array[0..1] of LongWord;
+  Params73: array[0..4] of LongWord;
+  Params74: array[0..1] of LongWord;
+  Params75: array[0..1] of LongWord;
+  Params76: array[0..0] of LongWord;
+  Params77: array[0..1] of LongWord;
+  Params78: array[0..1] of LongWord;
+  Params79: array[0..1] of LongWord;
+  Params80: array[0..1] of LongWord;
+  Params81: array[0..1] of LongWord;
 begin
   Result := RegisterFunction(
     Api, 'p7lcl.application.initialize', nil, 0,
@@ -86,199 +112,190 @@ begin
     P7_TYPE_ANY, False, @ApplicationTerminate
   );
   if Result <> P7_STATUS_OK then Exit;
+  Params6[0] := P7_TYPE_FOREIGN;
+  Params6[1] := P7_TYPE_STRING;
+  Result := RegisterFunction(
+    Api, 'p7lcl.component.set_name', @Params6[0], 2,
+    P7_TYPE_ANY, False, @ComponentSetName
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params7[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.component.name', @Params7[0], 1,
+    P7_TYPE_STRING, True, @ComponentName
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params8[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.component.owner', @Params8[0], 1,
+    P7_TYPE_FOREIGN, True, @ComponentOwner
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params9[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.parent', @Params9[0], 1,
+    P7_TYPE_FOREIGN, True, @ControlParent
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params10[0] := P7_TYPE_FOREIGN;
+  Params10[1] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.set_parent', @Params10[0], 2,
+    P7_TYPE_ANY, False, @ControlSetParent
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params11[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.left', @Params11[0], 1,
+    P7_TYPE_I32, True, @ControlLeft
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params12[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.top', @Params12[0], 1,
+    P7_TYPE_I32, True, @ControlTop
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params13[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.width', @Params13[0], 1,
+    P7_TYPE_I32, True, @ControlWidth
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params14[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.height', @Params14[0], 1,
+    P7_TYPE_I32, True, @ControlHeight
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params15[0] := P7_TYPE_FOREIGN;
+  Params15[1] := P7_TYPE_I32;
+  Params15[2] := P7_TYPE_I32;
+  Params15[3] := P7_TYPE_I32;
+  Params15[4] := P7_TYPE_I32;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.set_bounds', @Params15[0], 5,
+    P7_TYPE_ANY, False, @ControlSetBounds
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params16[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.visible', @Params16[0], 1,
+    P7_TYPE_BOOL, True, @ControlVisible
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params17[0] := P7_TYPE_FOREIGN;
+  Params17[1] := P7_TYPE_BOOL;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.set_visible', @Params17[0], 2,
+    P7_TYPE_ANY, False, @ControlSetVisible
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params18[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.enabled', @Params18[0], 1,
+    P7_TYPE_BOOL, True, @ControlEnabled
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params19[0] := P7_TYPE_FOREIGN;
+  Params19[1] := P7_TYPE_BOOL;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.set_enabled', @Params19[0], 2,
+    P7_TYPE_ANY, False, @ControlSetEnabled
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params20[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.show', @Params20[0], 1,
+    P7_TYPE_ANY, False, @ControlShow
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params21[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.hide', @Params21[0], 1,
+    P7_TYPE_ANY, False, @ControlHide
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params22[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.align', @Params22[0], 1,
+    P7_TYPE_I32, True, @ControlAlign
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params23[0] := P7_TYPE_FOREIGN;
+  Params23[1] := P7_TYPE_I32;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.set_align', @Params23[0], 2,
+    P7_TYPE_ANY, False, @ControlSetAlign
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params24[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.anchors', @Params24[0], 1,
+    P7_TYPE_U32, True, @ControlAnchors
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params25[0] := P7_TYPE_FOREIGN;
+  Params25[1] := P7_TYPE_U32;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.set_anchors', @Params25[0], 2,
+    P7_TYPE_ANY, False, @ControlSetAnchors
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params26[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.color', @Params26[0], 1,
+    P7_TYPE_I32, True, @ControlColor
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params27[0] := P7_TYPE_FOREIGN;
+  Params27[1] := P7_TYPE_I32;
+  Result := RegisterFunction(
+    Api, 'p7lcl.control.set_color', @Params27[0], 2,
+    P7_TYPE_ANY, False, @ControlSetColor
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params28[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.win_control.can_focus', @Params28[0], 1,
+    P7_TYPE_BOOL, True, @WinControlCanFocus
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params29[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.win_control.set_focus', @Params29[0], 1,
+    P7_TYPE_ANY, False, @WinControlSetFocus
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params30[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.win_control.tab_order', @Params30[0], 1,
+    P7_TYPE_I32, True, @WinControlTabOrder
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params31[0] := P7_TYPE_FOREIGN;
+  Params31[1] := P7_TYPE_I32;
+  Result := RegisterFunction(
+    Api, 'p7lcl.win_control.set_tab_order', @Params31[0], 2,
+    P7_TYPE_ANY, False, @WinControlSetTabOrder
+  );
+  if Result <> P7_STATUS_OK then Exit;
   Result := RegisterFunction(
     Api, 'p7lcl.form.create', nil, 0,
     P7_TYPE_FOREIGN, True, @FormCreate
   );
   if Result <> P7_STATUS_OK then Exit;
-  Params7[0] := P7_TYPE_FOREIGN;
-  Params7[1] := P7_TYPE_STRING;
-  Result := RegisterFunction(
-    Api, 'p7lcl.form.set_caption', @Params7[0], 2,
-    P7_TYPE_ANY, False, @FormSetCaption
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params8[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.form.caption', @Params8[0], 1,
-    P7_TYPE_STRING, True, @FormCaption
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params9[0] := P7_TYPE_FOREIGN;
-  Params9[1] := P7_TYPE_INT;
-  Params9[2] := P7_TYPE_INT;
-  Params9[3] := P7_TYPE_INT;
-  Params9[4] := P7_TYPE_INT;
-  Result := RegisterFunction(
-    Api, 'p7lcl.form.set_bounds', @Params9[0], 5,
-    P7_TYPE_ANY, False, @FormSetBounds
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params10[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.form.show', @Params10[0], 1,
-    P7_TYPE_ANY, False, @FormShow
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params11[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.form.close', @Params11[0], 1,
-    P7_TYPE_ANY, False, @FormClose
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params12[0] := P7_TYPE_FOREIGN;
-  Params12[1] := P7_TYPE_CLOSURE;
-  Result := RegisterFunction(
-    Api, 'p7lcl.form.on_close', @Params12[0], 2,
-    P7_TYPE_ANY, False, @FormSetOnClose
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params13[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.form.clear_on_close', @Params13[0], 1,
-    P7_TYPE_ANY, False, @FormClearOnClose
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params14[0] := P7_TYPE_FOREIGN;
-  Params14[1] := P7_TYPE_CLOSURE;
-  Result := RegisterFunction(
-    Api, 'p7lcl.form.on_close_query', @Params14[0], 2,
-    P7_TYPE_ANY, False, @FormSetOnCloseQuery
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params15[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.form.clear_on_close_query', @Params15[0], 1,
-    P7_TYPE_ANY, False, @FormClearOnCloseQuery
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params16[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.form.free', @Params16[0], 1,
-    P7_TYPE_ANY, False, @FormFree
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params17[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.button.create', @Params17[0], 1,
-    P7_TYPE_FOREIGN, True, @ButtonCreate
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params18[0] := P7_TYPE_FOREIGN;
-  Params18[1] := P7_TYPE_STRING;
-  Result := RegisterFunction(
-    Api, 'p7lcl.button.set_caption', @Params18[0], 2,
-    P7_TYPE_ANY, False, @ButtonSetCaption
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params19[0] := P7_TYPE_FOREIGN;
-  Params19[1] := P7_TYPE_INT;
-  Params19[2] := P7_TYPE_INT;
-  Params19[3] := P7_TYPE_INT;
-  Params19[4] := P7_TYPE_INT;
-  Result := RegisterFunction(
-    Api, 'p7lcl.button.set_bounds', @Params19[0], 5,
-    P7_TYPE_ANY, False, @ButtonSetBounds
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params20[0] := P7_TYPE_FOREIGN;
-  Params20[1] := P7_TYPE_BOOL;
-  Result := RegisterFunction(
-    Api, 'p7lcl.button.set_enabled', @Params20[0], 2,
-    P7_TYPE_ANY, False, @ButtonSetEnabled
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params21[0] := P7_TYPE_FOREIGN;
-  Params21[1] := P7_TYPE_BOOL;
-  Result := RegisterFunction(
-    Api, 'p7lcl.button.set_visible', @Params21[0], 2,
-    P7_TYPE_ANY, False, @ButtonSetVisible
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params22[0] := P7_TYPE_FOREIGN;
-  Params22[1] := P7_TYPE_CLOSURE;
-  Result := RegisterFunction(
-    Api, 'p7lcl.button.on_click', @Params22[0], 2,
-    P7_TYPE_ANY, False, @ButtonSetOnClick
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params23[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.button.clear_on_click', @Params23[0], 1,
-    P7_TYPE_ANY, False, @ButtonClearOnClick
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params24[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.button.click', @Params24[0], 1,
-    P7_TYPE_ANY, False, @ButtonClick
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params25[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.button.free', @Params25[0], 1,
-    P7_TYPE_ANY, False, @ButtonFree
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params26[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.label.create', @Params26[0], 1,
-    P7_TYPE_FOREIGN, True, @LabelCreate
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params27[0] := P7_TYPE_FOREIGN;
-  Params27[1] := P7_TYPE_STRING;
-  Result := RegisterFunction(
-    Api, 'p7lcl.label.set_caption', @Params27[0], 2,
-    P7_TYPE_ANY, False, @LabelSetCaption
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params28[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.label.caption', @Params28[0], 1,
-    P7_TYPE_STRING, True, @LabelCaption
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params29[0] := P7_TYPE_FOREIGN;
-  Params29[1] := P7_TYPE_INT;
-  Params29[2] := P7_TYPE_INT;
-  Params29[3] := P7_TYPE_INT;
-  Params29[4] := P7_TYPE_INT;
-  Result := RegisterFunction(
-    Api, 'p7lcl.label.set_bounds', @Params29[0], 5,
-    P7_TYPE_ANY, False, @LabelSetBounds
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params30[0] := P7_TYPE_FOREIGN;
-  Params30[1] := P7_TYPE_BOOL;
-  Result := RegisterFunction(
-    Api, 'p7lcl.label.set_visible', @Params30[0], 2,
-    P7_TYPE_ANY, False, @LabelSetVisible
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params31[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.label.free', @Params31[0], 1,
-    P7_TYPE_ANY, False, @LabelFree
-  );
-  if Result <> P7_STATUS_OK then Exit;
-  Params32[0] := P7_TYPE_FOREIGN;
-  Result := RegisterFunction(
-    Api, 'p7lcl.edit.create', @Params32[0], 1,
-    P7_TYPE_FOREIGN, True, @EditCreate
-  );
-  if Result <> P7_STATUS_OK then Exit;
   Params33[0] := P7_TYPE_FOREIGN;
   Params33[1] := P7_TYPE_STRING;
   Result := RegisterFunction(
-    Api, 'p7lcl.edit.set_text', @Params33[0], 2,
-    P7_TYPE_ANY, False, @EditSetText
+    Api, 'p7lcl.form.set_caption', @Params33[0], 2,
+    P7_TYPE_ANY, False, @FormSetCaption
   );
   if Result <> P7_STATUS_OK then Exit;
   Params34[0] := P7_TYPE_FOREIGN;
   Result := RegisterFunction(
-    Api, 'p7lcl.edit.text', @Params34[0], 1,
-    P7_TYPE_STRING, True, @EditText
+    Api, 'p7lcl.form.caption', @Params34[0], 1,
+    P7_TYPE_STRING, True, @FormCaption
   );
   if Result <> P7_STATUS_OK then Exit;
   Params35[0] := P7_TYPE_FOREIGN;
@@ -287,145 +304,346 @@ begin
   Params35[3] := P7_TYPE_INT;
   Params35[4] := P7_TYPE_INT;
   Result := RegisterFunction(
-    Api, 'p7lcl.edit.set_bounds', @Params35[0], 5,
-    P7_TYPE_ANY, False, @EditSetBounds
+    Api, 'p7lcl.form.set_bounds', @Params35[0], 5,
+    P7_TYPE_ANY, False, @FormSetBounds
   );
   if Result <> P7_STATUS_OK then Exit;
   Params36[0] := P7_TYPE_FOREIGN;
-  Params36[1] := P7_TYPE_BOOL;
   Result := RegisterFunction(
-    Api, 'p7lcl.edit.set_enabled', @Params36[0], 2,
-    P7_TYPE_ANY, False, @EditSetEnabled
+    Api, 'p7lcl.form.show', @Params36[0], 1,
+    P7_TYPE_ANY, False, @FormShow
   );
   if Result <> P7_STATUS_OK then Exit;
   Params37[0] := P7_TYPE_FOREIGN;
-  Params37[1] := P7_TYPE_BOOL;
   Result := RegisterFunction(
-    Api, 'p7lcl.edit.set_visible', @Params37[0], 2,
-    P7_TYPE_ANY, False, @EditSetVisible
+    Api, 'p7lcl.form.close', @Params37[0], 1,
+    P7_TYPE_ANY, False, @FormClose
   );
   if Result <> P7_STATUS_OK then Exit;
   Params38[0] := P7_TYPE_FOREIGN;
+  Params38[1] := P7_TYPE_CLOSURE;
   Result := RegisterFunction(
-    Api, 'p7lcl.edit.set_focus', @Params38[0], 1,
-    P7_TYPE_ANY, False, @EditSetFocus
+    Api, 'p7lcl.form.on_close', @Params38[0], 2,
+    P7_TYPE_ANY, False, @FormSetOnClose
   );
   if Result <> P7_STATUS_OK then Exit;
   Params39[0] := P7_TYPE_FOREIGN;
-  Params39[1] := P7_TYPE_CLOSURE;
   Result := RegisterFunction(
-    Api, 'p7lcl.edit.on_change', @Params39[0], 2,
-    P7_TYPE_ANY, False, @EditSetOnChange
+    Api, 'p7lcl.form.clear_on_close', @Params39[0], 1,
+    P7_TYPE_ANY, False, @FormClearOnClose
   );
   if Result <> P7_STATUS_OK then Exit;
   Params40[0] := P7_TYPE_FOREIGN;
+  Params40[1] := P7_TYPE_CLOSURE;
   Result := RegisterFunction(
-    Api, 'p7lcl.edit.clear_on_change', @Params40[0], 1,
-    P7_TYPE_ANY, False, @EditClearOnChange
+    Api, 'p7lcl.form.on_close_query', @Params40[0], 2,
+    P7_TYPE_ANY, False, @FormSetOnCloseQuery
   );
   if Result <> P7_STATUS_OK then Exit;
   Params41[0] := P7_TYPE_FOREIGN;
-  Params41[1] := P7_TYPE_CLOSURE;
   Result := RegisterFunction(
-    Api, 'p7lcl.edit.on_key_press', @Params41[0], 2,
-    P7_TYPE_ANY, False, @EditSetOnKeyPress
+    Api, 'p7lcl.form.clear_on_close_query', @Params41[0], 1,
+    P7_TYPE_ANY, False, @FormClearOnCloseQuery
   );
   if Result <> P7_STATUS_OK then Exit;
   Params42[0] := P7_TYPE_FOREIGN;
   Result := RegisterFunction(
-    Api, 'p7lcl.edit.clear_on_key_press', @Params42[0], 1,
-    P7_TYPE_ANY, False, @EditClearOnKeyPress
+    Api, 'p7lcl.form.free', @Params42[0], 1,
+    P7_TYPE_ANY, False, @FormFree
   );
   if Result <> P7_STATUS_OK then Exit;
   Params43[0] := P7_TYPE_FOREIGN;
-  Params43[1] := P7_TYPE_INT;
   Result := RegisterFunction(
-    Api, 'p7lcl.edit.send_key_press', @Params43[0], 2,
-    P7_TYPE_INT, True, @EditSendKeyPress
+    Api, 'p7lcl.button.create', @Params43[0], 1,
+    P7_TYPE_FOREIGN, True, @ButtonCreate
   );
   if Result <> P7_STATUS_OK then Exit;
   Params44[0] := P7_TYPE_FOREIGN;
+  Params44[1] := P7_TYPE_STRING;
   Result := RegisterFunction(
-    Api, 'p7lcl.edit.free', @Params44[0], 1,
-    P7_TYPE_ANY, False, @EditFree
+    Api, 'p7lcl.button.set_caption', @Params44[0], 2,
+    P7_TYPE_ANY, False, @ButtonSetCaption
   );
   if Result <> P7_STATUS_OK then Exit;
   Params45[0] := P7_TYPE_FOREIGN;
+  Params45[1] := P7_TYPE_INT;
+  Params45[2] := P7_TYPE_INT;
+  Params45[3] := P7_TYPE_INT;
+  Params45[4] := P7_TYPE_INT;
   Result := RegisterFunction(
-    Api, 'p7lcl.panel.create', @Params45[0], 1,
-    P7_TYPE_FOREIGN, True, @PanelCreate
+    Api, 'p7lcl.button.set_bounds', @Params45[0], 5,
+    P7_TYPE_ANY, False, @ButtonSetBounds
   );
   if Result <> P7_STATUS_OK then Exit;
   Params46[0] := P7_TYPE_FOREIGN;
-  Params46[1] := P7_TYPE_STRING;
+  Params46[1] := P7_TYPE_BOOL;
   Result := RegisterFunction(
-    Api, 'p7lcl.panel.set_caption', @Params46[0], 2,
-    P7_TYPE_ANY, False, @PanelSetCaption
+    Api, 'p7lcl.button.set_enabled', @Params46[0], 2,
+    P7_TYPE_ANY, False, @ButtonSetEnabled
   );
   if Result <> P7_STATUS_OK then Exit;
   Params47[0] := P7_TYPE_FOREIGN;
-  Params47[1] := P7_TYPE_INT;
-  Params47[2] := P7_TYPE_INT;
-  Params47[3] := P7_TYPE_INT;
-  Params47[4] := P7_TYPE_INT;
+  Params47[1] := P7_TYPE_BOOL;
   Result := RegisterFunction(
-    Api, 'p7lcl.panel.set_bounds', @Params47[0], 5,
-    P7_TYPE_ANY, False, @PanelSetBounds
+    Api, 'p7lcl.button.set_visible', @Params47[0], 2,
+    P7_TYPE_ANY, False, @ButtonSetVisible
   );
   if Result <> P7_STATUS_OK then Exit;
   Params48[0] := P7_TYPE_FOREIGN;
-  Params48[1] := P7_TYPE_BOOL;
+  Params48[1] := P7_TYPE_CLOSURE;
   Result := RegisterFunction(
-    Api, 'p7lcl.panel.set_enabled', @Params48[0], 2,
-    P7_TYPE_ANY, False, @PanelSetEnabled
+    Api, 'p7lcl.button.on_click', @Params48[0], 2,
+    P7_TYPE_ANY, False, @ButtonSetOnClick
   );
   if Result <> P7_STATUS_OK then Exit;
   Params49[0] := P7_TYPE_FOREIGN;
-  Params49[1] := P7_TYPE_BOOL;
   Result := RegisterFunction(
-    Api, 'p7lcl.panel.set_visible', @Params49[0], 2,
-    P7_TYPE_ANY, False, @PanelSetVisible
+    Api, 'p7lcl.button.clear_on_click', @Params49[0], 1,
+    P7_TYPE_ANY, False, @ButtonClearOnClick
   );
   if Result <> P7_STATUS_OK then Exit;
   Params50[0] := P7_TYPE_FOREIGN;
   Result := RegisterFunction(
-    Api, 'p7lcl.panel.free', @Params50[0], 1,
+    Api, 'p7lcl.button.click', @Params50[0], 1,
+    P7_TYPE_ANY, False, @ButtonClick
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params51[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.button.free', @Params51[0], 1,
+    P7_TYPE_ANY, False, @ButtonFree
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params52[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.label.create', @Params52[0], 1,
+    P7_TYPE_FOREIGN, True, @LabelCreate
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params53[0] := P7_TYPE_FOREIGN;
+  Params53[1] := P7_TYPE_STRING;
+  Result := RegisterFunction(
+    Api, 'p7lcl.label.set_caption', @Params53[0], 2,
+    P7_TYPE_ANY, False, @LabelSetCaption
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params54[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.label.caption', @Params54[0], 1,
+    P7_TYPE_STRING, True, @LabelCaption
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params55[0] := P7_TYPE_FOREIGN;
+  Params55[1] := P7_TYPE_INT;
+  Params55[2] := P7_TYPE_INT;
+  Params55[3] := P7_TYPE_INT;
+  Params55[4] := P7_TYPE_INT;
+  Result := RegisterFunction(
+    Api, 'p7lcl.label.set_bounds', @Params55[0], 5,
+    P7_TYPE_ANY, False, @LabelSetBounds
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params56[0] := P7_TYPE_FOREIGN;
+  Params56[1] := P7_TYPE_BOOL;
+  Result := RegisterFunction(
+    Api, 'p7lcl.label.set_visible', @Params56[0], 2,
+    P7_TYPE_ANY, False, @LabelSetVisible
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params57[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.label.free', @Params57[0], 1,
+    P7_TYPE_ANY, False, @LabelFree
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params58[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.edit.create', @Params58[0], 1,
+    P7_TYPE_FOREIGN, True, @EditCreate
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params59[0] := P7_TYPE_FOREIGN;
+  Params59[1] := P7_TYPE_STRING;
+  Result := RegisterFunction(
+    Api, 'p7lcl.edit.set_text', @Params59[0], 2,
+    P7_TYPE_ANY, False, @EditSetText
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params60[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.edit.text', @Params60[0], 1,
+    P7_TYPE_STRING, True, @EditText
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params61[0] := P7_TYPE_FOREIGN;
+  Params61[1] := P7_TYPE_INT;
+  Params61[2] := P7_TYPE_INT;
+  Params61[3] := P7_TYPE_INT;
+  Params61[4] := P7_TYPE_INT;
+  Result := RegisterFunction(
+    Api, 'p7lcl.edit.set_bounds', @Params61[0], 5,
+    P7_TYPE_ANY, False, @EditSetBounds
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params62[0] := P7_TYPE_FOREIGN;
+  Params62[1] := P7_TYPE_BOOL;
+  Result := RegisterFunction(
+    Api, 'p7lcl.edit.set_enabled', @Params62[0], 2,
+    P7_TYPE_ANY, False, @EditSetEnabled
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params63[0] := P7_TYPE_FOREIGN;
+  Params63[1] := P7_TYPE_BOOL;
+  Result := RegisterFunction(
+    Api, 'p7lcl.edit.set_visible', @Params63[0], 2,
+    P7_TYPE_ANY, False, @EditSetVisible
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params64[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.edit.set_focus', @Params64[0], 1,
+    P7_TYPE_ANY, False, @EditSetFocus
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params65[0] := P7_TYPE_FOREIGN;
+  Params65[1] := P7_TYPE_CLOSURE;
+  Result := RegisterFunction(
+    Api, 'p7lcl.edit.on_change', @Params65[0], 2,
+    P7_TYPE_ANY, False, @EditSetOnChange
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params66[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.edit.clear_on_change', @Params66[0], 1,
+    P7_TYPE_ANY, False, @EditClearOnChange
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params67[0] := P7_TYPE_FOREIGN;
+  Params67[1] := P7_TYPE_CLOSURE;
+  Result := RegisterFunction(
+    Api, 'p7lcl.edit.on_key_press', @Params67[0], 2,
+    P7_TYPE_ANY, False, @EditSetOnKeyPress
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params68[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.edit.clear_on_key_press', @Params68[0], 1,
+    P7_TYPE_ANY, False, @EditClearOnKeyPress
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params69[0] := P7_TYPE_FOREIGN;
+  Params69[1] := P7_TYPE_INT;
+  Result := RegisterFunction(
+    Api, 'p7lcl.edit.send_key_press', @Params69[0], 2,
+    P7_TYPE_INT, True, @EditSendKeyPress
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params70[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.edit.free', @Params70[0], 1,
+    P7_TYPE_ANY, False, @EditFree
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params71[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.panel.create', @Params71[0], 1,
+    P7_TYPE_FOREIGN, True, @PanelCreate
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params72[0] := P7_TYPE_FOREIGN;
+  Params72[1] := P7_TYPE_STRING;
+  Result := RegisterFunction(
+    Api, 'p7lcl.panel.set_caption', @Params72[0], 2,
+    P7_TYPE_ANY, False, @PanelSetCaption
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params73[0] := P7_TYPE_FOREIGN;
+  Params73[1] := P7_TYPE_INT;
+  Params73[2] := P7_TYPE_INT;
+  Params73[3] := P7_TYPE_INT;
+  Params73[4] := P7_TYPE_INT;
+  Result := RegisterFunction(
+    Api, 'p7lcl.panel.set_bounds', @Params73[0], 5,
+    P7_TYPE_ANY, False, @PanelSetBounds
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params74[0] := P7_TYPE_FOREIGN;
+  Params74[1] := P7_TYPE_BOOL;
+  Result := RegisterFunction(
+    Api, 'p7lcl.panel.set_enabled', @Params74[0], 2,
+    P7_TYPE_ANY, False, @PanelSetEnabled
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params75[0] := P7_TYPE_FOREIGN;
+  Params75[1] := P7_TYPE_BOOL;
+  Result := RegisterFunction(
+    Api, 'p7lcl.panel.set_visible', @Params75[0], 2,
+    P7_TYPE_ANY, False, @PanelSetVisible
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Params76[0] := P7_TYPE_FOREIGN;
+  Result := RegisterFunction(
+    Api, 'p7lcl.panel.free', @Params76[0], 1,
     P7_TYPE_ANY, False, @PanelFree
   );
   if Result <> P7_STATUS_OK then Exit;
-  Params51[0] := P7_TYPE_INT;
-  Params51[1] := P7_TYPE_STRING;
+  Params77[0] := P7_TYPE_INT;
+  Params77[1] := P7_TYPE_STRING;
   Result := RegisterFunction(
-    Api, 'p7lcl.form.finalize', @Params51[0], 2,
+    Api, 'p7lcl.form.finalize', @Params77[0], 2,
     P7_TYPE_ANY, False, @FormFinalize
   );
   if Result <> P7_STATUS_OK then Exit;
-  Params52[0] := P7_TYPE_INT;
-  Params52[1] := P7_TYPE_STRING;
+  Params78[0] := P7_TYPE_INT;
+  Params78[1] := P7_TYPE_STRING;
   Result := RegisterFunction(
-    Api, 'p7lcl.button.finalize', @Params52[0], 2,
+    Api, 'p7lcl.button.finalize', @Params78[0], 2,
     P7_TYPE_ANY, False, @ButtonFinalize
   );
   if Result <> P7_STATUS_OK then Exit;
-  Params53[0] := P7_TYPE_INT;
-  Params53[1] := P7_TYPE_STRING;
+  Params79[0] := P7_TYPE_INT;
+  Params79[1] := P7_TYPE_STRING;
   Result := RegisterFunction(
-    Api, 'p7lcl.label.finalize', @Params53[0], 2,
+    Api, 'p7lcl.label.finalize', @Params79[0], 2,
     P7_TYPE_ANY, False, @LabelFinalize
   );
   if Result <> P7_STATUS_OK then Exit;
-  Params54[0] := P7_TYPE_INT;
-  Params54[1] := P7_TYPE_STRING;
+  Params80[0] := P7_TYPE_INT;
+  Params80[1] := P7_TYPE_STRING;
   Result := RegisterFunction(
-    Api, 'p7lcl.edit.finalize', @Params54[0], 2,
+    Api, 'p7lcl.edit.finalize', @Params80[0], 2,
     P7_TYPE_ANY, False, @EditFinalize
   );
   if Result <> P7_STATUS_OK then Exit;
-  Params55[0] := P7_TYPE_INT;
-  Params55[1] := P7_TYPE_STRING;
+  Params81[0] := P7_TYPE_INT;
+  Params81[1] := P7_TYPE_STRING;
   Result := RegisterFunction(
-    Api, 'p7lcl.panel.finalize', @Params55[0], 2,
+    Api, 'p7lcl.panel.finalize', @Params81[0], 2,
     P7_TYPE_ANY, False, @PanelFinalize
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Result := Api^.RegisterForeignType(
+    Api^.Runtime,
+    'lcl.TObject',
+    nil
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Result := Api^.RegisterForeignType(
+    Api^.Runtime,
+    'lcl.TComponent',
+    nil
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Result := Api^.RegisterForeignType(
+    Api^.Runtime,
+    'lcl.TControl',
+    nil
+  );
+  if Result <> P7_STATUS_OK then Exit;
+  Result := Api^.RegisterForeignType(
+    Api^.Runtime,
+    'lcl.TWinControl',
+    nil
   );
   if Result <> P7_STATUS_OK then Exit;
   Result := Api^.RegisterForeignType(

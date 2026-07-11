@@ -6,20 +6,30 @@ fn main() -> int {
     lcl.set_form_caption(form, "Protosept LCL events");
     lcl.set_form_bounds(form, 120, 120, 420, 220);
 
+    let panel = lcl.new_panel(form);
+    lcl.set_panel_caption(panel, "Close the window to exit");
+    lcl.set_control_bounds(panel, 24, 20, 372, 172);
+    lcl.set_control_anchors(panel, lcl.Anchors.Left | lcl.Anchors.Right | lcl.Anchors.Top | lcl.Anchors.Bottom);
+
     let prompt = lcl.new_label(form);
+    lcl.set_control_parent(prompt, panel);
     lcl.set_label_caption(prompt, "Type a message:");
-    lcl.set_label_bounds(prompt, 24, 24, 360, 24);
+    lcl.set_control_bounds(prompt, 16, 16, 340, 24);
 
     let edit = lcl.new_edit(form);
-    lcl.set_edit_bounds(edit, 24, 56, 372, 32);
+    lcl.set_control_parent(edit, panel);
+    lcl.set_control_bounds(edit, 16, 48, 340, 32);
+    lcl.set_control_anchors(edit, lcl.Anchors.Left | lcl.Anchors.Right | lcl.Anchors.Top);
 
     let status = lcl.new_label(form);
+    lcl.set_control_parent(status, panel);
     lcl.set_label_caption(status, "Waiting for input");
-    lcl.set_label_bounds(status, 24, 104, 260, 24);
+    lcl.set_control_bounds(status, 16, 96, 236, 24);
 
     let button = lcl.new_button(form);
+    lcl.set_control_parent(button, panel);
     lcl.set_button_caption(button, "Copy text");
-    lcl.set_button_bounds(button, 292, 96, 104, 36);
+    lcl.set_control_bounds(button, 252, 88, 104, 36);
 
     lcl.edit_on_change(edit, () => {
         lcl.set_label_caption(status, "Text changed");
@@ -27,10 +37,6 @@ fn main() -> int {
     lcl.button_on_click(button, () => {
         lcl.set_label_caption(status, lcl.edit_text(edit));
     });
-
-    let panel = lcl.new_panel(form);
-    lcl.set_panel_caption(panel, "Close the window to exit");
-    lcl.set_panel_bounds(panel, 24, 152, 372, 36);
 
     lcl.show_form(form);
     lcl.run();

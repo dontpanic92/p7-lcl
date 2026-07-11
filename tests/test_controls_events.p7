@@ -229,28 +229,107 @@ fn test_form_destruction_invalidates_owned_child() -> string {
     lcl.label_caption(label)
 }
 
-@test(expected_type = "string", expected_value = "panel-ready")
-fn test_panel_and_common_control_properties() -> string {
+@test(expected_type = "int", expected_value = "42")
+fn test_hierarchy_common_properties_and_panel_parenting() -> int {
     lcl.initialize();
     let form = lcl.new_form();
     let panel = lcl.new_panel(form);
     let button = lcl.new_button(form);
     let label = lcl.new_label(form);
     let edit = lcl.new_edit(form);
-    lcl.set_panel_caption(panel, "Container");
-    lcl.set_panel_bounds(panel, 8, 8, 240, 80);
-    lcl.set_panel_enabled(panel, true);
-    lcl.set_panel_visible(panel, true);
-    lcl.set_button_visible(button, true);
-    lcl.set_label_visible(label, true);
-    lcl.set_edit_enabled(edit, true);
-    lcl.set_edit_visible(edit, true);
-    lcl.set_label_caption(label, "panel-ready");
-    let result = lcl.label_caption(label);
+
+    let button_control: handle<lcl.Control> = button;
+    let button_again = button_control as handle<lcl.Button>;
+    let button_window: handle<lcl.WinControl> = button;
+    lcl.set_component_name(button, "ActionButton");
+    lcl.set_component_name(panel, "ContainerPanel");
+    lcl.set_control_parent(button_control, panel);
+    lcl.set_control_parent(label, panel);
+    lcl.set_control_parent(edit, panel);
+    lcl.set_control_bounds(panel, 8, 8, 240, 100);
+    lcl.set_control_bounds(button_control, 12, 12, 80, 28);
+    lcl.set_control_visible(button_again, true);
+    lcl.set_control_enabled(button_again, true);
+    lcl.set_control_align(label, lcl.Align.Top);
+    lcl.set_control_anchors(edit, lcl.Anchors.Left | lcl.Anchors.Right | lcl.Anchors.Top);
+    lcl.set_control_color(panel, lcl.Color.White);
+    lcl.set_win_control_tab_order(button_window, 0);
+    let _can_focus = lcl.win_control_can_focus(button_window);
+    lcl.hide_control(label);
+    lcl.show_control(label);
+
+    let parent = lcl.control_parent(button_control);
+    let owner = lcl.component_owner(button);
+    lcl.set_component_name(owner, "OwnerForm");
+    let mut checks = 0;
+    if lcl.control_left(button_control) as int == 12 { checks = checks + 1; }
+    if lcl.control_top(button_control) as int == 12 { checks = checks + 2; }
+    if lcl.control_width(button_control) as int == 80 { checks = checks + 4; }
+    if lcl.control_height(button_control) as int == 28 { checks = checks + 8; }
+    if lcl.control_visible(button_control) { checks = checks + 16; }
+    if lcl.control_enabled(button_control) { checks = checks + 32; }
+    if lcl.control_align(label).value() as int == lcl.Align.Top.value() as int { checks = checks + 64; }
+    if lcl.control_anchors(edit).contains(lcl.Anchors.Right) { checks = checks + 128; }
+    if lcl.control_color(panel).value() as int == lcl.Color.White.value() as int { checks = checks + 256; }
+    if lcl.win_control_tab_order(button_window) as int == 0 { checks = checks + 512; }
+    if lcl.component_name(parent) == "ContainerPanel" { checks = checks + 1024; }
+    if lcl.component_name(owner) == "OwnerForm" { checks = checks + 2048; }
+
     lcl.free_edit(edit);
     lcl.free_label(label);
     lcl.free_button(button);
     lcl.free_panel(panel);
     lcl.free_form(form);
-    result
+    if checks == 4095 { 42 } else { 0 }
+}
+
+@test(runtime_error = "dynamic type_tag 'lcl.TLabel' is not a 'lcl.TButton'")
+fn test_checked_downcast_rejects_wrong_real_lcl_type() {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    let control: handle<lcl.Control> = label;
+    let _button = control as handle<lcl.Button>;
+    lcl.free_label(label);
+    lcl.free_form(form);
+}
+
+@test(runtime_error = "invalid TAlign value")
+fn test_invalid_align_is_rejected() {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    lcl.set_control_align(label, lcl.Align(99));
+    lcl.free_label(label);
+    lcl.free_form(form);
+}
+
+@test(runtime_error = "invalid TAnchors bit set")
+fn test_invalid_anchor_bits_are_rejected() {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let edit = lcl.new_edit(form);
+    lcl.set_control_anchors(edit, lcl.Anchors(16));
+    lcl.free_edit(edit);
+    lcl.free_form(form);
+}
+
+@test(runtime_error = "control width and height must be non-negative")
+fn test_negative_control_extent_is_rejected() {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let panel = lcl.new_panel(form);
+    lcl.set_control_bounds(panel, 0, 0, -1, 20);
+    lcl.free_panel(panel);
+    lcl.free_form(form);
+}
+
+@test(runtime_error = "tab order must be non-negative")
+fn test_negative_tab_order_is_rejected() {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let button = lcl.new_button(form);
+    lcl.set_win_control_tab_order(button, -1);
+    lcl.free_button(button);
+    lcl.free_form(form);
 }
