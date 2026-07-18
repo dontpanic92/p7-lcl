@@ -117,8 +117,8 @@ def package_target(target: str, library: Path, output_dir: Path) -> Path:
             ROOT / "THIRD_PARTY_NOTICES.md", stage / "THIRD_PARTY_NOTICES.md"
         )
         shutil.copy2(library, stage / "native" / "lib" / library_name)
-        (stage / "p7.toml").write_text(
-            staged_manifest(version, library_name), encoding="utf-8"
+        (stage / "p7.toml").write_bytes(
+            staged_manifest(version, library_name).encode("utf-8")
         )
 
         output = output_dir / f"p7-lcl-{version}-{target}.tar.gz"

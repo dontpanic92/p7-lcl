@@ -88,7 +88,7 @@ def main() -> int:
     )
     if lazarus_dir:
         command.append(f"--lazarusdir={lazarus_dir}")
-    compiler = os.environ.get("FPC")
+    compiler = os.environ.get("FPC") or shutil.which("fpc")
     if compiler:
         command.append(f"--compiler={compiler}")
     if target_os == "darwin" and os.environ.get("P7_LCL_DARWIN_LD_CLASSIC", "1") != "0":

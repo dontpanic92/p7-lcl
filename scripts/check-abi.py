@@ -71,20 +71,27 @@ def main() -> int:
         if platform.system() == "Linux":
             compile_command.append("-ldl")
         run(compile_command)
-        run([abi_compat, library])
+        abi_command = [abi_compat, library]
+        if (
+            platform.system() == "Linux"
+            and not os.environ.get("DISPLAY")
+            and shutil.which("xvfb-run")
+        ):
+            abi_command = ["xvfb-run", "-a", *abi_command]
+        run(abi_command)
 
+        abi_layout = temp_dir / f"abi_layout{executable_suffix}"
         run(
             [
                 fpc,
                 f"-Fu{ROOT / 'native' / 'pascal'}",
                 f"-FU{temp_dir}",
-                f"-FE{temp_dir}",
-                "-oabi_layout",
+                f"-o{abi_layout}",
                 ROOT / "native" / "tests" / "abi_layout.pas",
             ],
             stdout=subprocess.DEVNULL,
         )
-        run([temp_dir / f"abi_layout{executable_suffix}"])
+        run([abi_layout])
 
     cargo = find_program("CARGO", ["cargo"])
     common = [

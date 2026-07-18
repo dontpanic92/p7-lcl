@@ -55,6 +55,7 @@ def main() -> int:
             '  lcl.set_form_caption(form, "prebuilt");\n'
             "  let result = lcl.form_caption(form);\n"
             "  lcl.free_form(form);\n"
+            "  lcl.terminate();\n"
             "  result\n"
             "}\n",
             encoding="utf-8",
