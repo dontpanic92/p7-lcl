@@ -1,5 +1,6 @@
 protosept
 staging
 target/
+dist/
 native/lib/
 native/pascal/build/

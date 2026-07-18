@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "known_widgetsets": ["cocoa", "win32", "gtk2", "qt5"],
+  "known_widgetsets": ["cocoa", "win32", "gtk2", "gtk3", "qt5"],
   "defaults": {
     "parameter_direction": "in",
     "availability": {
-      "platforms": ["darwin"],
-      "widgetsets": ["cocoa"]
+      "platforms": ["darwin", "linux", "windows"],
+      "widgetsets": ["cocoa", "gtk3", "win32"]
     }
   },
   "value_types": [

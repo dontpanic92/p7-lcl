@@ -1,10 +1,50 @@
 #include "protosept_extension.h"
 
-#include <dlfcn.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+
+#ifdef _WIN32
+#include <windows.h>
+typedef HMODULE LibraryHandle;
+
+static LibraryHandle library_open(const char *path) {
+    return LoadLibraryA(path);
+}
+
+static void *library_symbol(LibraryHandle library, const char *name) {
+    return (void *)(uintptr_t)GetProcAddress(library, name);
+}
+
+static void library_close(LibraryHandle library) {
+    FreeLibrary(library);
+}
+
+static void print_library_error(const char *operation) {
+    fprintf(stderr, "%s failed with Windows error %lu\n",
+            operation, (unsigned long)GetLastError());
+}
+#else
+#include <dlfcn.h>
+typedef void *LibraryHandle;
+
+static LibraryHandle library_open(const char *path) {
+    return dlopen(path, RTLD_NOW | RTLD_LOCAL);
+}
+
+static void *library_symbol(LibraryHandle library, const char *name) {
+    return dlsym(library, name);
+}
+
+static void library_close(LibraryHandle library) {
+    dlclose(library);
+}
+
+static void print_library_error(const char *operation) {
+    fprintf(stderr, "%s failed: %s\n", operation, dlerror());
+}
+#endif
 
 #if UINTPTR_MAX == UINT64_MAX
 _Static_assert(sizeof(P7CallbackValue) == 40, "P7CallbackValue size");
@@ -105,23 +145,24 @@ int main(int argc, char **argv) {
         return 2;
     }
 
-    void *library = dlopen(argv[1], RTLD_NOW | RTLD_LOCAL);
+    LibraryHandle library = library_open(argv[1]);
     if (library == NULL) {
-        fprintf(stderr, "dlopen failed: %s\n", dlerror());
+        print_library_error("loading native extension");
         return 1;
     }
     P7ExtensionInit initialize =
-        (P7ExtensionInit)dlsym(library, P7_EXTENSION_INIT_SYMBOL);
+        (P7ExtensionInit)(uintptr_t)library_symbol(
+            library, P7_EXTENSION_INIT_SYMBOL);
     if (initialize == NULL) {
-        fprintf(stderr, "dlsym failed: %s\n", dlerror());
-        dlclose(library);
+        print_library_error("loading p7_extension_init_v1");
+        library_close(library);
         return 1;
     }
 
     P7HostApi current = make_host_api();
     if (initialize(&current) != P7_STATUS_OK) {
         fprintf(stderr, "current host table was rejected\n");
-        dlclose(library);
+        library_close(library);
         return 1;
     }
 
@@ -129,7 +170,7 @@ int main(int argc, char **argv) {
     older.struct_size = offsetof(P7HostApi, invoke_rooted_callback_values);
     if (initialize(&older) != P7_STATUS_INVALID_ARGUMENT) {
         fprintf(stderr, "truncated host table was not rejected\n");
-        dlclose(library);
+        library_close(library);
         return 1;
     }
 
@@ -142,7 +183,7 @@ int main(int argc, char **argv) {
     newer.api.struct_size = sizeof(newer);
     if (initialize(&newer.api) != P7_STATUS_OK) {
         fprintf(stderr, "extended host table was rejected\n");
-        dlclose(library);
+        library_close(library);
         return 1;
     }
 
@@ -150,10 +191,10 @@ int main(int argc, char **argv) {
     wrong_version.abi_version++;
     if (initialize(&wrong_version) != P7_STATUS_INVALID_ARGUMENT) {
         fprintf(stderr, "unknown ABI version was not rejected\n");
-        dlclose(library);
+        library_close(library);
         return 1;
     }
 
-    dlclose(library);
+    library_close(library);
     return 0;
 }

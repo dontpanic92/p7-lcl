@@ -1,0 +1,140 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  LAZARUS_VERSION: "4.4"
+  PROTOSEPT_REF: master
+
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Checkout Protosept
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: dontpanic92/protosept
+          ref: ${{ env.PROTOSEPT_REF }}
+          path: protosept
+      - name: Check generated files
+        run: ./scripts/check-generated.sh
+      - name: Check release packaging
+        run: python3 scripts/check-release.py
+      - name: Test Protosept package resolver
+        run: cargo test --manifest-path protosept/Cargo.toml -p p7-cli
+
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            target: aarch64-apple-darwin
+          - runner: macos-15-intel
+            target: x86_64-apple-darwin
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+          - runner: windows-2025
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Checkout Protosept
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: dontpanic92/protosept
+          ref: ${{ env.PROTOSEPT_REF }}
+          path: protosept
+      - name: Install GTK3 build and runtime libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --yes libgtk-3-dev xvfb
+      - name: Install Rosetta for the pinned Lazarus installer
+        if: matrix.target == 'aarch64-apple-darwin'
+        run: |
+          if ! arch -x86_64 /usr/bin/true 2>/dev/null; then
+            sudo softwareupdate --install-rosetta --agree-to-license
+          fi
+      - name: Install Lazarus and Free Pascal
+        uses: gcarreno/setup-lazarus@f33ce5608e25f3bf4c80127c45fc5f40a644271f
+        with:
+          lazarus-version: ${{ env.LAZARUS_VERSION }}
+          with-cache: false
+      - name: Build native extension
+        run: python scripts/build-native.py --build-all --target ${{ matrix.target }}
+      - name: Check native ABI
+        env:
+          CC: ${{ runner.os == 'Windows' && 'clang' || 'cc' }}
+        run: python scripts/check-abi.py
+      - name: Inspect runtime dependencies
+        run: python scripts/inspect-native.py native/lib/${{ runner.os == 'Windows' && 'p7lcl.dll' || runner.os == 'Linux' && 'libp7lcl.so' || 'libp7lcl.dylib' }}
+      - name: Test root package
+        if: runner.os != 'Linux'
+        run: cargo run --quiet --manifest-path protosept/Cargo.toml -p p7-cli -- test .
+      - name: Test root package under Xvfb
+        if: runner.os == 'Linux'
+        run: xvfb-run -a cargo run --quiet --manifest-path protosept/Cargo.toml -p p7-cli -- test .
+      - name: Package native extension
+        run: python scripts/package-release.py package --target ${{ matrix.target }}
+      - name: Upload release archive
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p7-lcl-${{ matrix.target }}
+          path: |
+            dist/*.tar.gz
+            dist/*.sha256
+          if-no-files-found: error
+
+  assemble:
+    needs: native
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Download target archives
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Generate local release index
+        run: python3 scripts/package-release.py index --archives dist
+      - name: Upload release bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p7-lcl-release-bundle
+          path: dist/
+          if-no-files-found: error
+
+  consumer:
+    needs: assemble
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel, ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Checkout Protosept
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: dontpanic92/protosept
+          ref: ${{ env.PROTOSEPT_REF }}
+          path: protosept
+      - name: Install GTK3 runtime
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --yes libgtk-3-0t64 xvfb
+      - name: Download release bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: p7-lcl-release-bundle
+          path: dist
+      - name: Consume pre-built package
+        if: runner.os != 'Linux'
+        run: python scripts/test-downstream.py dist
+      - name: Consume pre-built package under Xvfb
+        if: runner.os == 'Linux'
+        run: xvfb-run -a python3 scripts/test-downstream.py dist

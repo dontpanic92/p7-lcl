@@ -6,9 +6,10 @@ and a versioning decision.
 
 ## Package and generated metadata
 
-- `p7.toml` defines package `lcl` version `0.1.0` as a library and loads
-  `native/lib/libp7lcl.dylib`.
-- `p7.lock` uses lockfile version 1 and contains the root path package without
+- `p7.toml` defines package `lcl` version `0.1.0` as a library and loads the
+  host build copied to `native/lib/p7lcl.native`. Release packages replace that
+  path with the target's `.dylib`, `.so`, or `.dll` filename.
+- `p7.lock` uses lockfile version 2 and contains the root path package without
   external dependencies. The CLI-maintained source checksum changes when
   tracked package inputs change; the package identity, source, and dependency
   shape are stable.

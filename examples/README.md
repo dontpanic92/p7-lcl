@@ -40,7 +40,7 @@ Run an executable with:
 cargo run --manifest-path protosept/Cargo.toml -p p7-cli -- run examples/showcase
 ```
 
-Use this checklist on the supported Cocoa baseline:
+Use this checklist on the supported Cocoa, GTK3, or Win32 baseline:
 
 1. `hello`: edit the text, press **Copy text**, and close the form.
 2. `layout`: resize the window, toggle the label, and move focus between the

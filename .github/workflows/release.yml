@@ -1,0 +1,163 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+env:
+  LAZARUS_VERSION: "4.4"
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      protosept_ref: ${{ steps.ref.outputs.protosept_ref }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Read Protosept revision
+        id: ref
+        shell: bash
+        run: |
+          ref=$(tr -d '[:space:]' < protosept.rev)
+          if [[ "$ref" = "SKIP" ]]; then
+            echo "::warning::Protosept revision pinning is disabled; using master"
+            ref=master
+          elif ! [[ "$ref" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "protosept.rev must contain a 40-character commit SHA or SKIP" >&2
+            exit 1
+          fi
+          echo "protosept_ref=$ref" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            target: aarch64-apple-darwin
+          - runner: macos-15-intel
+            target: x86_64-apple-darwin
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+          - runner: windows-2025
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Checkout Protosept
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: dontpanic92/protosept
+          ref: ${{ needs.prepare.outputs.protosept_ref }}
+          path: protosept
+      - name: Verify tag matches package version
+        shell: bash
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' p7.toml | head -n 1)
+          test "$GITHUB_REF_NAME" = "v$version"
+      - name: Install GTK3 build and runtime libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --yes libgtk-3-dev xvfb
+      - name: Install Rosetta for the pinned Lazarus installer
+        if: matrix.target == 'aarch64-apple-darwin'
+        run: |
+          if ! arch -x86_64 /usr/bin/true 2>/dev/null; then
+            sudo softwareupdate --install-rosetta --agree-to-license
+          fi
+      - name: Install Lazarus and Free Pascal
+        uses: gcarreno/setup-lazarus@f33ce5608e25f3bf4c80127c45fc5f40a644271f
+        with:
+          lazarus-version: ${{ env.LAZARUS_VERSION }}
+          with-cache: false
+      - name: Build and package
+        env:
+          CC: ${{ runner.os == 'Windows' && 'clang' || 'cc' }}
+        run: |
+          python scripts/build-native.py --build-all --target ${{ matrix.target }}
+          python scripts/check-abi.py
+          python scripts/inspect-native.py native/lib/${{ runner.os == 'Windows' && 'p7lcl.dll' || runner.os == 'Linux' && 'libp7lcl.so' || 'libp7lcl.dylib' }}
+          python scripts/package-release.py package --target ${{ matrix.target }}
+      - name: Upload target archive
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p7-lcl-${{ matrix.target }}
+          path: |
+            dist/*.tar.gz
+            dist/*.sha256
+          if-no-files-found: error
+
+  assemble:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Download target archives
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Generate local release index
+        run: python3 scripts/package-release.py index --archives dist
+      - name: Upload release bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p7-lcl-release-bundle
+          path: dist/
+          if-no-files-found: error
+
+  consumer:
+    needs: [prepare, assemble]
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel, ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Checkout Protosept
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: dontpanic92/protosept
+          ref: ${{ needs.prepare.outputs.protosept_ref }}
+          path: protosept
+      - name: Install GTK3 runtime
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --yes libgtk-3-0t64 xvfb
+      - name: Download release bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: p7-lcl-release-bundle
+          path: dist
+      - name: Consume pre-built package
+        if: runner.os != 'Linux'
+        run: python scripts/test-downstream.py dist
+      - name: Consume pre-built package under Xvfb
+        if: runner.os == 'Linux'
+        run: xvfb-run -a python3 scripts/test-downstream.py dist
+
+  publish:
+    needs: [assemble, consumer]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Download release bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: p7-lcl-release-bundle
+          path: dist
+      - name: Generate release index
+        run: |
+          python3 scripts/package-release.py index \
+            --archives dist \
+            --base-url "https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME"
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --generate-notes

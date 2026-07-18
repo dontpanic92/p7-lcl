@@ -1,15 +1,24 @@
-version = 1
+version = 2
 
-[[packages]]
+[[package]]
 name = "lcl"
 version = "0.1.0"
-source = "path+../.."
-checksum = "d094e1745732cd1fe92dddea7a2f0fc24b4972e75f610ee198d140ee1fc281a0"
-dependencies = []
+checksum = "02ce9566b9f68243ca49ee54ce003e93e9284e0ced938feab096127f18359ad1"
 
-[[packages]]
+[package.source]
+kind = "path"
+path = "../.."
+
+[package.dependencies]
+
+[[package]]
 name = "lcl_collections_example"
 version = "0.1.0"
-source = "path+."
 checksum = "77ec7064bcb5874b5cb5a0f7af77bf08e89c500207ea365035dcf3477015d090"
-dependencies = ["lcl"]
+
+[package.source]
+kind = "path"
+path = "."
+
+[package.dependencies.lcl]
+path = "../.."

@@ -40,7 +40,7 @@ version = "0.1.0"
 kind = "library"
 
 [native]
-extensions = ["native/lib/libp7lcl.dylib"]
+extensions = ["native/lib/p7lcl.native"]
 """,
         )
 
@@ -48,13 +48,17 @@ extensions = ["native/lib/libp7lcl.dylib"]
         self.assertRegex(
             lockfile,
             re.compile(
-                r'^version = 1\n\n'
-                r'\[\[packages\]\]\n'
+                r'^version = 2\n\n'
+                r'\[\[package\]\]\n'
                 r'name = "lcl"\n'
                 r'version = "0\.1\.0"\n'
-                r'source = "path\+\."\n'
                 r'checksum = "[0-9a-f]{64}"\n'
-                r'dependencies = \[\]\n$'
+                r'\n'
+                r'\[package\.source\]\n'
+                r'kind = "path"\n'
+                r'path = "\."\n'
+                r'\n'
+                r'\[package\.dependencies\]\n$'
             ),
         )
 

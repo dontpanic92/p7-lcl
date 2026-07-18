@@ -111,12 +111,41 @@ longer needed.
 The `protosept` directory is intentionally untracked and points to the local
 Protosept checkout used to build the CLI.
 
+## Pre-built package
+
+Tagged releases publish complete p7-lcl packages for:
+
+- macOS arm64 and x86_64 using Cocoa.
+- Linux x86_64 using GTK3.
+- Windows x86_64 using Win32.
+
+Downstream projects reference the exact release index without installing
+Lazarus or Free Pascal:
+
+```toml
+[dependencies]
+lcl = {
+  index = "https://github.com/dontpanic92/p7-lcl/releases/download/v0.1.0/p7-lcl-0.1.0.index.toml"
+}
+```
+
+The first project command downloads the target archive and writes its index
+and archive SHA-256 pins to `p7.lock`. Later commands use those locked URLs and
+checksums. Linux consumers need the GTK3 runtime installed; Lazarus headers and
+development packages are not required.
+
 ## Commands
 
-Build the native extension first:
+Build the native extension for the current host:
 
 ```bash
 ./scripts/build-native.sh
+```
+
+The build script also accepts an explicit release target:
+
+```bash
+python3 scripts/build-native.py --target x86_64-unknown-linux-gnu
 ```
 
 `generator/bindings.json` is the binding metadata source. It records the
@@ -149,9 +178,28 @@ and Rust/C/Free Pascal layouts with:
 ./scripts/check-abi.sh
 ```
 
-The build uses `~/lazarus`, `/usr/local/bin/fpc`, and the Cocoa widgetset. It
-passes `-ld_classic` because the current Apple linker rejects Objective-C
-metadata emitted by this FPC/Lazarus toolchain.
+The build locates `lazbuild` and FPC from `PATH` or the `LAZBUILD`, `FPC`, and
+`LAZARUS_DIR` environment variables. It selects Cocoa, GTK3, or Win32 from the
+target triple. macOS builds pass `-ld_classic` by default because affected
+FPC/Lazarus toolchains emit Objective-C metadata rejected by Apple's newer
+linker; set `P7_LCL_DARWIN_LD_CLASSIC=0` for a toolchain that no longer needs
+it.
+
+Create and validate a target release archive with:
+
+```bash
+python3 scripts/package-release.py package --target aarch64-apple-darwin
+python3 scripts/package-release.py index --archives dist
+python3 scripts/check-release.py
+```
+
+Version tags trigger GitHub Actions builds for all four targets and publish the
+archives, SHA-256 sidecars, package index, and index checksum in one GitHub
+Release. Before tagging, release Protosept, write that immutable 40-character
+commit SHA to `protosept.rev`, and commit the pin; release workflows reject the
+`UNRELEASED` placeholder. Set it to `SKIP` to bypass the pin and build from
+Protosept `master`; this is convenient during development but makes a release
+non-reproducible.
 
 Run the root library checks from this directory:
 
@@ -175,6 +223,6 @@ cargo run --manifest-path protosept/Cargo.toml -p p7-cli -- run examples/showcas
 ```
 
 See [`examples/README.md`](examples/README.md) for the coverage matrix, focused
-package commands, and the Cocoa manual-interaction checklist.
+package commands, and the platform manual-interaction checklist.
 
 Running the root package with `p7 run` is rejected because it is a library.
