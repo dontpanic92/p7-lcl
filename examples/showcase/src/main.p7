@@ -1,0 +1,306 @@
+import lcl;
+
+fn open_showcase_image(
+    dialog: handle<lcl.OpenDialog>,
+    image: handle<lcl.Image>,
+    status: handle<lcl.StatusBar>
+) {
+    if lcl.open_dialog_execute(dialog) {
+        lcl.image_load_from_file(image, lcl.open_dialog_file_name(dialog));
+        lcl.set_status_bar_simple_text(status, "Opened selected image");
+    }
+}
+
+fn choose_showcase_save(
+    dialog: handle<lcl.SaveDialog>,
+    status: handle<lcl.StatusBar>
+) {
+    if lcl.save_dialog_execute(dialog) {
+        lcl.set_status_bar_simple_text(status, "Selected a save path");
+    }
+}
+
+fn show_showcase_combo_selection(
+    combo: handle<lcl.ComboBox>,
+    prompt: handle<lcl.Label>
+) {
+    let index = lcl.combo_box_item_index(combo);
+    if index >= 0 {
+        lcl.set_label_caption(prompt, lcl.combo_box_item(combo, index));
+    }
+}
+
+fn main() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.register_main_form(form);
+    lcl.set_component_name(lcl.main_form(), "ShowcaseForm");
+    lcl.set_form_caption(form, "Protosept LCL showcase");
+    lcl.set_form_bounds(form, 80, 60, 920, 660);
+
+    let main_menu = lcl.new_main_menu(form);
+    let file_menu = lcl.new_menu_item(main_menu);
+    let open_item = lcl.new_submenu_item(file_menu);
+    let save_item = lcl.new_submenu_item(file_menu);
+    let clear_item = lcl.new_submenu_item(file_menu);
+    lcl.set_form_main_menu(form, main_menu);
+    lcl.set_menu_item_caption(file_menu, "File");
+    lcl.set_menu_item_caption(open_item, "Open image...");
+    lcl.set_menu_item_caption(save_item, "Choose save path...");
+    lcl.set_menu_item_caption(clear_item, "Clear output");
+
+    let tool_bar = lcl.new_tool_bar(form);
+    lcl.set_control_align(tool_bar, lcl.Align.Top);
+    lcl.set_tool_bar_show_captions(tool_bar, true);
+    let add_tool = lcl.new_tool_button(tool_bar);
+    let fixture_tool = lcl.new_tool_button(tool_bar);
+    lcl.set_tool_button_caption(add_tool, "Add item");
+    lcl.set_tool_button_caption(fixture_tool, "Load fixture");
+
+    let status = lcl.new_status_bar(form);
+    lcl.set_control_align(status, lcl.Align.Bottom);
+    lcl.set_status_bar_simple_panel(status, true);
+    lcl.set_status_bar_simple_text(status, "Ready");
+
+    let workspace = lcl.new_panel(form);
+    lcl.set_panel_caption(workspace, "");
+    lcl.set_control_align(workspace, lcl.Align.Client);
+    lcl.set_control_color(workspace, lcl.Color.White);
+
+    let input_group = lcl.new_group_box(form);
+    lcl.set_group_box_caption(input_group, "Input and collections");
+    lcl.set_control_parent(input_group, workspace);
+    lcl.set_control_bounds(input_group, 16, 16, 420, 520);
+    lcl.set_control_anchors(
+        input_group,
+        lcl.Anchors.Left | lcl.Anchors.Top | lcl.Anchors.Bottom
+    );
+
+    let prompt = lcl.new_label(form);
+    lcl.set_label_caption(prompt, "New item:");
+    lcl.set_control_parent(prompt, input_group);
+    lcl.set_control_bounds(prompt, 16, 28, 100, 24);
+
+    let edit = lcl.new_edit(form);
+    lcl.set_edit_text(edit, "Protosept");
+    lcl.set_control_parent(edit, input_group);
+    lcl.set_control_bounds(edit, 16, 56, 250, 32);
+    lcl.set_win_control_tab_order(edit, 0);
+
+    let add_button = lcl.new_button(form);
+    lcl.set_button_caption(add_button, "Add");
+    lcl.set_control_parent(add_button, input_group);
+    lcl.set_control_bounds(add_button, 280, 54, 110, 36);
+    lcl.set_win_control_tab_order(add_button, 1);
+
+    let list = lcl.new_list_box(form);
+    lcl.set_control_parent(list, input_group);
+    lcl.set_control_bounds(list, 16, 106, 180, 170);
+    lcl.list_box_add_item(list, "Alpha");
+    lcl.list_box_add_item(list, "Beta");
+
+    let combo = lcl.new_combo_box(form);
+    lcl.set_control_parent(combo, input_group);
+    lcl.set_control_bounds(combo, 212, 106, 178, 32);
+    lcl.combo_box_add_item(combo, "Selection details");
+    lcl.combo_box_add_item(combo, "Application events");
+    lcl.combo_box_select_index(combo, 0);
+
+    let memo = lcl.new_memo(form);
+    lcl.set_control_parent(memo, input_group);
+    lcl.set_control_bounds(memo, 212, 152, 178, 124);
+    lcl.set_memo_text(memo, "Select a list item.");
+
+    let enable_memo = lcl.new_checkbox(form);
+    lcl.set_checkbox_caption(enable_memo, "Enable memo");
+    lcl.set_checkbox_checked(enable_memo, true);
+    lcl.set_control_parent(enable_memo, input_group);
+    lcl.set_control_bounds(enable_memo, 16, 300, 150, 28);
+
+    let black_status = lcl.new_radio_button(form);
+    lcl.set_radio_button_caption(black_status, "Black status");
+    lcl.set_control_parent(black_status, input_group);
+    lcl.set_control_bounds(black_status, 16, 344, 150, 28);
+
+    let blue_status = lcl.new_radio_button(form);
+    lcl.set_radio_button_caption(blue_status, "Blue status");
+    lcl.set_control_parent(blue_status, input_group);
+    lcl.set_control_bounds(blue_status, 180, 344, 150, 28);
+
+    let image_group = lcl.new_group_box(form);
+    lcl.set_group_box_caption(image_group, "Image and desktop components");
+    lcl.set_control_parent(image_group, workspace);
+    lcl.set_control_bounds(image_group, 452, 16, 436, 520);
+    lcl.set_control_anchors(
+        image_group,
+        lcl.Anchors.Left | lcl.Anchors.Right | lcl.Anchors.Top | lcl.Anchors.Bottom
+    );
+
+    let image = lcl.new_image(form);
+    lcl.set_control_parent(image, image_group);
+    lcl.set_control_bounds(image, 16, 32, 404, 430);
+    lcl.set_control_anchors(
+        image,
+        lcl.Anchors.Left | lcl.Anchors.Right | lcl.Anchors.Top | lcl.Anchors.Bottom
+    );
+    lcl.set_image_center(image, true);
+    lcl.set_image_stretch(image, true);
+    lcl.set_image_proportional(image, true);
+    lcl.set_image_transparent(image, false);
+
+    let image_details = lcl.new_label(form);
+    lcl.set_label_caption(image_details, "Use File > Open or Load fixture.");
+    lcl.set_control_parent(image_details, image_group);
+    lcl.set_control_bounds(image_details, 16, 474, 400, 24);
+
+    let open_dialog = lcl.new_open_dialog(form);
+    lcl.set_open_dialog_filter(open_dialog, "Images|*.png;*.xpm|All files|*.*");
+    let save_dialog = lcl.new_save_dialog(form);
+    lcl.set_open_dialog_filter(save_dialog, "Text|*.txt|All files|*.*");
+    lcl.set_save_dialog_file_name(save_dialog, "showcase.txt");
+
+    let timer = lcl.new_timer(form);
+    lcl.set_timer_interval(timer, 1000);
+    lcl.set_timer_enabled(timer, true);
+    lcl.timer_on_timer(timer, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.Timer>;
+        lcl.set_component_name(actual, "ShowcaseTimer");
+        lcl.set_status_bar_simple_text(status, "Timer tick");
+    });
+
+    lcl.button_on_click(add_button, () => {
+        let index = lcl.list_box_add_item(list, lcl.edit_text(edit));
+        lcl.list_box_select_index(list, index);
+        lcl.set_status_bar_simple_text(status, "Item added");
+    });
+    lcl.list_box_on_selection_change(list, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.ListBox>;
+        let index = lcl.list_box_item_index(actual);
+        lcl.set_memo_text(memo, lcl.list_box_item(actual, index));
+    });
+    lcl.combo_box_on_change(combo, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.ComboBox>;
+        show_showcase_combo_selection(actual, prompt);
+    });
+    lcl.checkbox_on_change(enable_memo, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.CheckBox>;
+        lcl.set_control_enabled(memo, lcl.checkbox_checked(actual));
+    });
+    lcl.radio_button_on_change(black_status, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.RadioButton>;
+        lcl.set_component_name(actual, "BlackRadio");
+        lcl.set_control_color(status, lcl.Color.Black);
+    });
+    lcl.radio_button_on_change(blue_status, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.RadioButton>;
+        lcl.set_component_name(actual, "BlueRadio");
+        lcl.set_control_color(status, lcl.Color.Blue);
+    });
+    lcl.edit_on_change(edit, () => {
+        lcl.set_status_bar_simple_text(status, "Edit changed");
+    });
+    lcl.edit_on_key_press(edit, (key: int) => {
+        if key == 27 { 0 } else { key }
+    });
+    lcl.memo_on_change(memo, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.Memo>;
+        lcl.set_component_name(actual, "ShowcaseMemo");
+    });
+    lcl.tool_button_on_click(add_tool, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.ToolButton>;
+        lcl.set_component_name(actual, "AddTool");
+        lcl.click_button(add_button);
+    });
+    lcl.tool_button_on_click(fixture_tool, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.ToolButton>;
+        lcl.set_component_name(actual, "FixtureTool");
+        lcl.image_load_from_file(image, "examples/showcase/assets/checker.xpm");
+        lcl.set_label_caption(image_details, "Loaded the checked-in XPM fixture.");
+    });
+    lcl.menu_item_on_click(open_item, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.MenuItem>;
+        lcl.set_menu_item_checked(actual, true);
+        open_showcase_image(open_dialog, image, status);
+    });
+    lcl.menu_item_on_click(save_item, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.MenuItem>;
+        lcl.set_menu_item_checked(actual, true);
+        choose_showcase_save(save_dialog, status);
+    });
+    lcl.menu_item_on_click(clear_item, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.MenuItem>;
+        lcl.set_component_name(actual, "ClearItem");
+        lcl.set_memo_text(memo, "");
+        lcl.image_clear(image);
+        lcl.set_status_bar_simple_text(status, "Output cleared");
+    });
+    lcl.form_on_show(form, () => {
+        lcl.set_status_bar_simple_text(status, "Showcase visible");
+    });
+    lcl.form_on_resize(form, () => {
+        lcl.set_status_bar_simple_text(status, "Showcase resized");
+    });
+    lcl.form_on_close_query(form, () => {
+        let can_close = lcl.checkbox_checked(enable_memo);
+        can_close
+    });
+    lcl.form_on_close(form, () => {
+        lcl.set_timer_enabled(timer, false);
+    });
+
+    lcl.show_form(form);
+    if lcl.win_control_can_focus(edit) {
+        lcl.set_win_control_focus(edit);
+    }
+    lcl.run();
+
+    lcl.form_clear_on_close(form);
+    lcl.form_clear_on_close_query(form);
+    lcl.form_clear_on_resize(form);
+    lcl.form_clear_on_show(form);
+    lcl.menu_item_clear_on_click(clear_item);
+    lcl.menu_item_clear_on_click(save_item);
+    lcl.menu_item_clear_on_click(open_item);
+    lcl.tool_button_clear_on_click(fixture_tool);
+    lcl.tool_button_clear_on_click(add_tool);
+    lcl.memo_clear_on_change(memo);
+    lcl.edit_clear_on_key_press(edit);
+    lcl.edit_clear_on_change(edit);
+    lcl.radio_button_clear_on_change(blue_status);
+    lcl.radio_button_clear_on_change(black_status);
+    lcl.checkbox_clear_on_change(enable_memo);
+    lcl.combo_box_clear_on_change(combo);
+    lcl.list_box_clear_on_selection_change(list);
+    lcl.button_clear_on_click(add_button);
+    lcl.timer_clear_on_timer(timer);
+    lcl.set_timer_enabled(timer, false);
+
+    lcl.free_timer(timer);
+    lcl.free_save_dialog(save_dialog);
+    lcl.free_open_dialog(open_dialog);
+    lcl.free_label(image_details);
+    lcl.free_image(image);
+    lcl.free_group_box(image_group);
+    lcl.free_radio_button(blue_status);
+    lcl.free_radio_button(black_status);
+    lcl.free_checkbox(enable_memo);
+    lcl.free_memo(memo);
+    lcl.free_combo_box(combo);
+    lcl.free_list_box(list);
+    lcl.free_button(add_button);
+    lcl.free_edit(edit);
+    lcl.free_label(prompt);
+    lcl.free_group_box(input_group);
+    lcl.free_panel(workspace);
+    lcl.free_status_bar(status);
+    lcl.free_tool_button(fixture_tool);
+    lcl.free_tool_button(add_tool);
+    lcl.free_tool_bar(tool_bar);
+    lcl.free_menu_item(clear_item);
+    lcl.free_menu_item(save_item);
+    lcl.free_menu_item(open_item);
+    lcl.free_menu_item(file_menu);
+    lcl.free_main_menu(main_menu);
+    lcl.free_form(form);
+    0
+}

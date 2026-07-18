@@ -1,0 +1,27 @@
+import test.test;
+import lcl;
+
+@test(expected_type = "string", expected_value = "Panel:Form")
+fn test_layout_hierarchy_and_common_properties() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.register_main_form(form);
+    lcl.set_component_name(lcl.main_form(), "Form");
+    let panel = lcl.new_panel(form);
+    let button = lcl.new_button(form);
+    lcl.set_component_name(panel, "Panel");
+    lcl.set_control_parent(button, panel);
+    lcl.set_control_bounds(button, 12, 16, 80, 28);
+    lcl.set_control_anchors(button, lcl.Anchors.Left | lcl.Anchors.Top);
+    lcl.set_control_color(panel, lcl.Color.White);
+    lcl.set_win_control_tab_order(button, 0);
+    let control: handle<lcl.Control> = button;
+    let actual = control as handle<lcl.Button>;
+    let parent = lcl.control_parent(actual);
+    let owner = lcl.component_owner(actual);
+    let result = lcl.component_name(parent) + ":" + lcl.component_name(owner);
+    lcl.free_button(button);
+    lcl.free_panel(panel);
+    lcl.free_form(form);
+    result
+}

@@ -12,7 +12,9 @@ and a versioning decision.
   external dependencies. The CLI-maintained source checksum changes when
   tracked package inputs change; the package identity, source, and dependency
   shape are stable.
-- `examples/hello/p7.toml` depends on the root package through `../..`.
+- Example package manifests under `examples/*/p7.toml` depend on the root
+  package through `../..`; adding examples does not alter the root package or
+  extension ABI.
 - `generator/bindings.json` schema version 1 is authoritative for foreign
   inheritance, ownership, parent policy, signatures, and generated output.
   Generated files must match it exactly.

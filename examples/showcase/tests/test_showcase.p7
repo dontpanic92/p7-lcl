@@ -1,0 +1,85 @@
+import test.test;
+import lcl;
+
+@test(expected_type = "string", expected_value = "item:timer:Run")
+fn test_showcase_component_integration() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let panel = lcl.new_panel(form);
+    let group = lcl.new_group_box(form);
+    let label = lcl.new_label(form);
+    let edit = lcl.new_edit(form);
+    let button = lcl.new_button(form);
+    let check = lcl.new_checkbox(form);
+    let radio = lcl.new_radio_button(form);
+    let memo = lcl.new_memo(form);
+    let list = lcl.new_list_box(form);
+    let combo = lcl.new_combo_box(form);
+    let image = lcl.new_image(form);
+    let timer = lcl.new_timer(form);
+    let menu = lcl.new_main_menu(form);
+    let menu_item = lcl.new_menu_item(menu);
+    let tool_bar = lcl.new_tool_bar(form);
+    let tool_button = lcl.new_tool_button(tool_bar);
+    let status = lcl.new_status_bar(form);
+    let open = lcl.new_open_dialog(form);
+    let save = lcl.new_save_dialog(form);
+
+    lcl.set_control_parent(group, panel);
+    lcl.set_control_parent(label, group);
+    lcl.set_control_parent(edit, group);
+    lcl.set_control_parent(button, group);
+    lcl.set_control_parent(check, group);
+    lcl.set_control_parent(radio, group);
+    lcl.set_control_parent(memo, group);
+    lcl.set_control_parent(list, group);
+    lcl.set_control_parent(combo, group);
+    lcl.set_control_parent(image, group);
+    lcl.set_open_dialog_file_name(open, "input.xpm");
+    lcl.set_save_dialog_file_name(save, "output.txt");
+    lcl.set_status_bar_simple_text(status, "Ready");
+    lcl.set_tool_button_caption(tool_button, "Run");
+    lcl.set_menu_item_caption(menu_item, "File");
+
+    lcl.list_box_add_item(list, "item");
+    lcl.list_box_select_index(list, 0);
+    lcl.combo_box_add_item(combo, "choice");
+    lcl.combo_box_select_index(combo, 0);
+    lcl.button_on_click(button, () => {
+        lcl.set_label_caption(label, lcl.list_box_item(list, 0));
+    });
+    lcl.timer_on_timer(timer, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.Timer>;
+        lcl.set_component_name(actual, "timer");
+        lcl.set_status_bar_simple_text(status, "timer");
+    });
+    lcl.click_button(button);
+    lcl.timer_trigger(timer);
+    let result = lcl.label_caption(label)
+        + ":" + lcl.status_bar_simple_text(status)
+        + ":" + lcl.tool_button_caption(tool_button);
+
+    lcl.timer_clear_on_timer(timer);
+    lcl.button_clear_on_click(button);
+    lcl.free_save_dialog(save);
+    lcl.free_open_dialog(open);
+    lcl.free_status_bar(status);
+    lcl.free_tool_button(tool_button);
+    lcl.free_tool_bar(tool_bar);
+    lcl.free_menu_item(menu_item);
+    lcl.free_main_menu(menu);
+    lcl.free_timer(timer);
+    lcl.free_image(image);
+    lcl.free_combo_box(combo);
+    lcl.free_list_box(list);
+    lcl.free_memo(memo);
+    lcl.free_radio_button(radio);
+    lcl.free_checkbox(check);
+    lcl.free_button(button);
+    lcl.free_edit(edit);
+    lcl.free_label(label);
+    lcl.free_group_box(group);
+    lcl.free_panel(panel);
+    lcl.free_form(form);
+    result
+}

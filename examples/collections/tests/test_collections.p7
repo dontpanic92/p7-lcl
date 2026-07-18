@@ -1,0 +1,26 @@
+import test.test;
+import lcl;
+
+@test(expected_type = "string", expected_value = "beta:two")
+fn test_indexed_collection_workflows() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let list = lcl.new_list_box(form);
+    let combo = lcl.new_combo_box(form);
+    let first = lcl.list_box_add_item(list, "alpha");
+    let second = lcl.list_box_add_item(list, "bravo");
+    lcl.list_box_set_item(list, second, "beta");
+    lcl.list_box_select_index(list, second);
+    lcl.combo_box_add_item(combo, "one");
+    let combo_second = lcl.combo_box_add_item(combo, "two");
+    lcl.combo_box_select_index(combo, combo_second);
+    let result = lcl.list_box_item(list, lcl.list_box_item_index(list))
+        + ":" + lcl.combo_box_item(combo, lcl.combo_box_item_index(combo));
+    lcl.list_box_delete_item(list, first);
+    lcl.list_box_clear_items(list);
+    lcl.combo_box_clear_items(combo);
+    lcl.free_combo_box(combo);
+    lcl.free_list_box(list);
+    lcl.free_form(form);
+    result
+}

@@ -1,0 +1,86 @@
+import lcl;
+
+fn show_combo_selection(
+    combo: handle<lcl.ComboBox>,
+    status: handle<lcl.Label>
+) {
+    let index = lcl.combo_box_item_index(combo);
+    if index >= 0 {
+        lcl.set_component_name(combo, lcl.combo_box_item(combo, index));
+        lcl.set_label_caption(status, "Combo selection changed");
+    }
+}
+
+fn main() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.register_main_form(form);
+    lcl.set_form_caption(form, "LCL indexed collections");
+    lcl.set_form_bounds(form, 160, 160, 620, 390);
+
+    let list = lcl.new_list_box(form);
+    lcl.set_control_bounds(list, 20, 20, 250, 260);
+
+    let combo = lcl.new_combo_box(form);
+    lcl.set_control_bounds(combo, 300, 20, 270, 32);
+
+    let status = lcl.new_label(form);
+    lcl.set_label_caption(status, "Select an item");
+    lcl.set_control_bounds(status, 300, 72, 270, 24);
+
+    let add = lcl.new_button(form);
+    lcl.set_button_caption(add, "Add item");
+    lcl.set_control_bounds(add, 300, 112, 120, 36);
+
+    let remove = lcl.new_button(form);
+    lcl.set_button_caption(remove, "Remove selected");
+    lcl.set_control_bounds(remove, 432, 112, 138, 36);
+
+    lcl.list_box_add_item(list, "Alpha");
+    lcl.list_box_add_item(list, "Bravo");
+    let third = lcl.list_box_add_item(list, "Charlie");
+    lcl.list_box_set_item(list, third, "Charlie (edited)");
+    lcl.combo_box_add_item(combo, "Copy selection");
+    lcl.combo_box_add_item(combo, "Show item count");
+    lcl.combo_box_select_index(combo, 0);
+
+    lcl.list_box_on_selection_change(list, (
+        sender: handle<lcl.Control>
+    ) => {
+        let actual = sender as handle<lcl.ListBox>;
+        let index = lcl.list_box_item_index(actual);
+        lcl.set_label_caption(status, lcl.list_box_item(actual, index));
+    });
+    lcl.combo_box_on_change(combo, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.ComboBox>;
+        show_combo_selection(actual, status);
+    });
+    lcl.button_on_click(add, () => {
+        let index = lcl.list_box_add_item(list, "New item");
+        lcl.list_box_select_index(list, index);
+    });
+    lcl.button_on_click(remove, () => {
+        let index = lcl.list_box_item_index(list);
+        if index >= 0 {
+            lcl.list_box_delete_item(list, index);
+        }
+        lcl.set_label_caption(status, "Remove action completed");
+    });
+
+    lcl.show_form(form);
+    lcl.run();
+
+    lcl.button_clear_on_click(remove);
+    lcl.button_clear_on_click(add);
+    lcl.combo_box_clear_on_change(combo);
+    lcl.list_box_clear_on_selection_change(list);
+    lcl.combo_box_clear_items(combo);
+    lcl.list_box_clear_items(list);
+    lcl.free_button(remove);
+    lcl.free_button(add);
+    lcl.free_label(status);
+    lcl.free_combo_box(combo);
+    lcl.free_list_box(list);
+    lcl.free_form(form);
+    0
+}

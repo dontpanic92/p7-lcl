@@ -1,0 +1,82 @@
+import lcl;
+
+fn main() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.register_main_form(form);
+    lcl.set_form_caption(form, "LCL layout and hierarchy");
+    lcl.set_form_bounds(form, 120, 120, 560, 320);
+    lcl.set_component_name(lcl.main_form(), "LayoutForm");
+
+    let panel = lcl.new_panel(form);
+    lcl.set_component_name(panel, "MainPanel");
+    lcl.set_panel_caption(panel, "");
+    lcl.set_control_align(panel, lcl.Align.Client);
+    lcl.set_control_color(panel, lcl.Color.White);
+
+    let group = lcl.new_group_box(form);
+    lcl.set_component_name(group, "OptionsGroup");
+    lcl.set_group_box_caption(group, "Layout options");
+    lcl.set_control_parent(group, panel);
+    lcl.set_control_bounds(group, 16, 16, 512, 190);
+    lcl.set_control_anchors(
+        group,
+        lcl.Anchors.Left | lcl.Anchors.Right | lcl.Anchors.Top
+    );
+
+    let label = lcl.new_label(form);
+    lcl.set_label_caption(label, "Resize the window to see anchored controls.");
+    lcl.set_control_parent(label, group);
+    lcl.set_control_bounds(label, 16, 28, 456, 24);
+    lcl.set_control_align(label, lcl.Align.Top);
+
+    let edit = lcl.new_edit(form);
+    lcl.set_edit_text(edit, "Focusable edit");
+    lcl.set_control_parent(edit, group);
+    lcl.set_control_bounds(edit, 16, 72, 352, 32);
+    lcl.set_control_anchors(
+        edit,
+        lcl.Anchors.Left | lcl.Anchors.Right | lcl.Anchors.Top
+    );
+    lcl.set_win_control_tab_order(edit, 0);
+
+    let button = lcl.new_button(form);
+    lcl.set_button_caption(button, "Toggle label");
+    lcl.set_control_parent(button, group);
+    lcl.set_control_bounds(button, 376, 70, 120, 36);
+    lcl.set_control_anchors(button, lcl.Anchors.Right | lcl.Anchors.Top);
+    lcl.set_win_control_tab_order(button, 1);
+
+    let button_control: handle<lcl.Control> = button;
+    let button_again = button_control as handle<lcl.Button>;
+    lcl.button_on_click(button_again, () => {
+        lcl.set_control_visible(label, !lcl.control_visible(label));
+    });
+
+    let parent = lcl.control_parent(edit);
+    let owner = lcl.component_owner(edit);
+    let details = lcl.new_label(form);
+    lcl.set_control_parent(details, panel);
+    lcl.set_label_caption(
+        details,
+        "Parent: " + lcl.component_name(parent)
+            + " / Owner: " + lcl.component_name(owner)
+    );
+    lcl.set_control_bounds(details, 16, 230, 500, 24);
+
+    lcl.show_form(form);
+    if lcl.win_control_can_focus(edit) {
+        lcl.set_win_control_focus(edit);
+    }
+    lcl.run();
+
+    lcl.button_clear_on_click(button);
+    lcl.free_label(details);
+    lcl.free_button(button);
+    lcl.free_edit(edit);
+    lcl.free_label(label);
+    lcl.free_group_box(group);
+    lcl.free_panel(panel);
+    lcl.free_form(form);
+    0
+}

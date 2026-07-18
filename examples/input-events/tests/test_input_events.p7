@@ -1,0 +1,86 @@
+import test.test;
+import lcl;
+
+@test(expected_type = "string", expected_value = "clicked:66:你")
+fn test_input_callbacks_and_mutable_keys() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    let button = lcl.new_button(form);
+    let edit = lcl.new_edit(form);
+    lcl.button_on_click(button, () => {
+        lcl.set_label_caption(label, "clicked");
+    });
+    lcl.edit_on_key_down(edit, (
+        sender: handle<lcl.Control>,
+        key: int,
+        shift: int
+    ) => {
+        let actual = sender as handle<lcl.Edit>;
+        lcl.set_component_name(actual, "key");
+        if key == 65 && shift == lcl.ShiftState.Ctrl.bits() as int {
+            66
+        } else {
+            key
+        }
+    });
+    lcl.edit_on_utf8_key_press(edit, (
+        sender: handle<lcl.Control>,
+        key: string
+    ) => {
+        let actual = sender as handle<lcl.Edit>;
+        lcl.set_edit_text(actual, key);
+    });
+    lcl.click_button(button);
+    let replacement = lcl.edit_send_key_down(edit, 65, lcl.ShiftState.Ctrl);
+    let utf8 = lcl.edit_send_utf8_key_press(edit, "你");
+    let replacement_text = if replacement == 66 { "66" } else { "wrong" };
+    let result = lcl.label_caption(label) + ":" + replacement_text + ":" + utf8;
+    lcl.edit_clear_on_utf8_key_press(edit);
+    lcl.edit_clear_on_key_down(edit);
+    lcl.button_clear_on_click(button);
+    lcl.free_edit(edit);
+    lcl.free_button(button);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "memo:checked:second")
+fn test_memo_checkbox_and_radio_events() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let memo = lcl.new_memo(form);
+    let check = lcl.new_checkbox(form);
+    let first = lcl.new_radio_button(form);
+    let second = lcl.new_radio_button(form);
+    lcl.memo_on_change(memo, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.Memo>;
+        lcl.set_component_name(actual, "memo");
+    });
+    lcl.checkbox_on_change(check, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.CheckBox>;
+        lcl.set_component_name(actual, "checked");
+    });
+    lcl.radio_button_on_change(second, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.RadioButton>;
+        lcl.set_component_name(actual, "second");
+    });
+    lcl.set_memo_text(memo, "text");
+    lcl.memo_trigger_change(memo);
+    lcl.click_checkbox(check);
+    lcl.click_radio_button(first);
+    lcl.click_radio_button(second);
+    let result = lcl.component_name(memo)
+        + ":" + lcl.component_name(check)
+        + ":" + lcl.component_name(second);
+    lcl.radio_button_clear_on_change(second);
+    lcl.checkbox_clear_on_change(check);
+    lcl.memo_clear_on_change(memo);
+    lcl.free_radio_button(second);
+    lcl.free_radio_button(first);
+    lcl.free_checkbox(check);
+    lcl.free_memo(memo);
+    lcl.free_form(form);
+    result
+}

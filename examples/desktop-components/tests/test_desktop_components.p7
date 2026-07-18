@@ -1,0 +1,76 @@
+import test.test;
+import lcl;
+
+@test(expected_type = "string", expected_value = "Open:Run:Ready:output.txt:Options")
+fn test_menu_toolbar_status_dialog_and_group_box() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let menu = lcl.new_main_menu(form);
+    let file = lcl.new_menu_item(menu);
+    let open_item = lcl.new_submenu_item(file);
+    let tool_bar = lcl.new_tool_bar(form);
+    let tool_button = lcl.new_tool_button(tool_bar);
+    let status = lcl.new_status_bar(form);
+    let save = lcl.new_save_dialog(form);
+    let group = lcl.new_group_box(form);
+    lcl.set_menu_item_caption(open_item, "Open");
+    lcl.set_tool_bar_show_captions(tool_bar, true);
+    lcl.set_tool_button_caption(tool_button, "Run");
+    lcl.set_status_bar_simple_text(status, "Ready");
+    lcl.set_save_dialog_file_name(save, "output.txt");
+    lcl.set_group_box_caption(group, "Options");
+    let result = lcl.menu_item_caption(open_item)
+        + ":" + lcl.tool_button_caption(tool_button)
+        + ":" + lcl.status_bar_simple_text(status)
+        + ":" + lcl.save_dialog_file_name(save)
+        + ":" + lcl.group_box_caption(group);
+    lcl.free_group_box(group);
+    lcl.free_save_dialog(save);
+    lcl.free_status_bar(status);
+    lcl.free_tool_button(tool_button);
+    lcl.free_tool_bar(tool_bar);
+    lcl.free_menu_item(open_item);
+    lcl.free_menu_item(file);
+    lcl.free_main_menu(menu);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "timer:1")
+fn test_timer_and_image_properties() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    let timer = lcl.new_timer(form);
+    let image = lcl.new_image(form);
+    lcl.set_timer_interval(timer, 25);
+    lcl.set_timer_enabled(timer, true);
+    lcl.timer_on_timer(timer, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.Timer>;
+        lcl.set_component_name(actual, "timer");
+        lcl.set_label_caption(label, "timer");
+    });
+    lcl.set_image_center(image, true);
+    lcl.set_image_stretch(image, true);
+    lcl.set_image_proportional(image, true);
+    lcl.set_image_transparent(image, true);
+    lcl.image_clear(image);
+    lcl.timer_trigger(timer);
+    let image_ok = if lcl.image_center(image)
+        && lcl.image_stretch(image)
+        && lcl.image_proportional(image)
+        && lcl.image_transparent(image)
+        && lcl.image_picture_width(image) == 0
+        && lcl.image_picture_height(image) == 0 {
+        "1"
+    } else {
+        "0"
+    };
+    let result = lcl.label_caption(label) + ":" + image_ok;
+    lcl.timer_clear_on_timer(timer);
+    lcl.free_image(image);
+    lcl.free_timer(timer);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}

@@ -8,8 +8,8 @@ checksum = "d094e1745732cd1fe92dddea7a2f0fc24b4972e75f610ee198d140ee1fc281a0"
 dependencies = []
 
 [[packages]]
-name = "lcl_hello_example"
+name = "lcl_desktop_components_example"
 version = "0.1.0"
 source = "path+."
-checksum = "3ec970725eb18e20a6886a2094ce1568e7c5e40d28de518150b56830515e71d6"
+checksum = "49a382871893b35a1cd9b85b6ed28219aa60b7c8233ab8ca941fcbd4a1162a46"
 dependencies = ["lcl"]

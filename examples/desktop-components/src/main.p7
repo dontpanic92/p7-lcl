@@ -1,0 +1,139 @@
+import lcl;
+
+fn open_image(
+    dialog: handle<lcl.OpenDialog>,
+    image: handle<lcl.Image>,
+    status: handle<lcl.StatusBar>
+) {
+    if lcl.open_dialog_execute(dialog) {
+        lcl.image_load_from_file(image, lcl.open_dialog_file_name(dialog));
+        lcl.set_status_bar_simple_text(status, "Image opened");
+    }
+}
+
+fn choose_save_path(
+    dialog: handle<lcl.SaveDialog>,
+    status: handle<lcl.StatusBar>
+) {
+    if lcl.save_dialog_execute(dialog) {
+        lcl.set_status_bar_simple_text(
+            status,
+            "Save path selected"
+        );
+    }
+}
+
+fn main() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.register_main_form(form);
+    lcl.set_form_caption(form, "LCL desktop components");
+    lcl.set_form_bounds(form, 200, 100, 720, 520);
+
+    let menu = lcl.new_main_menu(form);
+    let file_menu = lcl.new_menu_item(menu);
+    let open_item = lcl.new_submenu_item(file_menu);
+    let save_item = lcl.new_submenu_item(file_menu);
+    lcl.set_form_main_menu(form, menu);
+    lcl.set_menu_item_caption(file_menu, "File");
+    lcl.set_menu_item_caption(open_item, "Open image...");
+    lcl.set_menu_item_caption(save_item, "Save...");
+
+    let tool_bar = lcl.new_tool_bar(form);
+    lcl.set_control_align(tool_bar, lcl.Align.Top);
+    lcl.set_tool_bar_show_captions(tool_bar, true);
+    let load_button = lcl.new_tool_button(tool_bar);
+    lcl.set_tool_button_caption(load_button, "Load fixture");
+    let clear_button = lcl.new_tool_button(tool_bar);
+    lcl.set_tool_button_caption(clear_button, "Clear");
+
+    let status = lcl.new_status_bar(form);
+    lcl.set_control_align(status, lcl.Align.Bottom);
+    lcl.set_status_bar_simple_panel(status, true);
+    lcl.set_status_bar_simple_text(status, "Ready");
+
+    let group = lcl.new_group_box(form);
+    lcl.set_group_box_caption(group, "Image preview");
+    lcl.set_control_bounds(group, 16, 56, 672, 380);
+    lcl.set_control_anchors(
+        group,
+        lcl.Anchors.Left | lcl.Anchors.Right | lcl.Anchors.Top | lcl.Anchors.Bottom
+    );
+
+    let image = lcl.new_image(form);
+    lcl.set_control_parent(image, group);
+    lcl.set_control_bounds(image, 16, 28, 640, 330);
+    lcl.set_control_anchors(
+        image,
+        lcl.Anchors.Left | lcl.Anchors.Right | lcl.Anchors.Top | lcl.Anchors.Bottom
+    );
+    lcl.set_image_center(image, true);
+    lcl.set_image_stretch(image, true);
+    lcl.set_image_proportional(image, true);
+    lcl.set_image_transparent(image, false);
+
+    let open_dialog = lcl.new_open_dialog(form);
+    lcl.set_open_dialog_filter(open_dialog, "Images|*.png;*.xpm|All files|*.*");
+    let save_dialog = lcl.new_save_dialog(form);
+    lcl.set_open_dialog_filter(save_dialog, "Text|*.txt|All files|*.*");
+    lcl.set_save_dialog_file_name(save_dialog, "lcl-example.txt");
+
+    let timer = lcl.new_timer(form);
+    lcl.set_timer_interval(timer, 1000);
+    lcl.set_timer_enabled(timer, true);
+    lcl.timer_on_timer(timer, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.Timer>;
+        lcl.set_component_name(actual, "Ticked");
+        lcl.set_status_bar_simple_text(status, "Timer tick");
+    });
+    lcl.tool_button_on_click(load_button, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.ToolButton>;
+        lcl.set_component_name(actual, "FixtureLoader");
+        lcl.image_load_from_file(
+            image,
+            "examples/desktop-components/assets/checker.xpm"
+        );
+        lcl.set_status_bar_simple_text(status, "Fixture loaded");
+    });
+    lcl.tool_button_on_click(clear_button, (sender: handle<lcl.Control>) => {
+        let actual = sender as handle<lcl.ToolButton>;
+        lcl.set_component_name(actual, "ImageClearer");
+        lcl.image_clear(image);
+        lcl.set_status_bar_simple_text(status, "Image cleared");
+    });
+    lcl.menu_item_on_click(open_item, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.MenuItem>;
+        lcl.set_menu_item_checked(actual, true);
+        open_image(open_dialog, image, status);
+    });
+    lcl.menu_item_on_click(save_item, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.MenuItem>;
+        lcl.set_menu_item_checked(actual, true);
+        choose_save_path(save_dialog, status);
+    });
+
+    lcl.show_form(form);
+    lcl.run();
+
+    lcl.menu_item_clear_on_click(save_item);
+    lcl.menu_item_clear_on_click(open_item);
+    lcl.tool_button_clear_on_click(clear_button);
+    lcl.tool_button_clear_on_click(load_button);
+    lcl.timer_clear_on_timer(timer);
+    lcl.set_timer_enabled(timer, false);
+    lcl.free_timer(timer);
+    lcl.free_save_dialog(save_dialog);
+    lcl.free_open_dialog(open_dialog);
+    lcl.free_image(image);
+    lcl.free_group_box(group);
+    lcl.free_status_bar(status);
+    lcl.free_tool_button(clear_button);
+    lcl.free_tool_button(load_button);
+    lcl.free_tool_bar(tool_bar);
+    lcl.free_menu_item(save_item);
+    lcl.free_menu_item(open_item);
+    lcl.free_menu_item(file_menu);
+    lcl.free_main_menu(menu);
+    lcl.free_form(form);
+    0
+}

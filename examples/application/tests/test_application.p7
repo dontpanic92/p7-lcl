@@ -1,0 +1,38 @@
+import test.test;
+import lcl;
+
+@test(expected_type = "string", expected_value = "queued:MainForm")
+fn test_main_form_and_bounded_dispatch() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    lcl.register_main_form(form);
+    lcl.set_component_name(lcl.main_form(), "MainForm");
+    lcl.invoke(() => {
+        lcl.set_label_caption(label, "invoked");
+    });
+    lcl.queue(() => {
+        lcl.set_label_caption(label, "queued");
+    });
+    lcl.process_messages_bounded(1);
+    let result = lcl.label_caption(label) + ":" + lcl.component_name(lcl.main_form());
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}
+
+@test(expected_type = "string", expected_value = "Exception: expected")
+fn test_application_exception_callback() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    lcl.application_on_exception((class_name: string, message: string) => {
+        lcl.set_label_caption(label, class_name + ": " + message);
+    });
+    lcl.application_raise_exception("expected");
+    lcl.application_clear_on_exception();
+    let result = lcl.label_caption(label);
+    lcl.free_label(label);
+    lcl.free_form(form);
+    result
+}

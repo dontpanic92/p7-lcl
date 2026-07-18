@@ -1,0 +1,82 @@
+import lcl;
+
+fn main() -> int {
+    lcl.initialize();
+    lcl.initialize();
+    let form = lcl.new_form();
+    lcl.register_main_form(form);
+    lcl.set_form_caption(form, "LCL application lifecycle");
+    lcl.set_form_bounds(form, 180, 180, 540, 280);
+
+    let status = lcl.new_label(form);
+    lcl.set_label_caption(status, "Waiting for lifecycle events");
+    lcl.set_control_bounds(status, 20, 20, 480, 24);
+
+    let close = lcl.new_button(form);
+    lcl.set_button_caption(close, "Close");
+    lcl.set_control_bounds(close, 20, 72, 120, 36);
+
+    let allow_close = lcl.new_checkbox(form);
+    lcl.set_checkbox_caption(allow_close, "Allow close");
+    lcl.set_checkbox_checked(allow_close, true);
+    lcl.set_control_bounds(allow_close, 160, 76, 160, 28);
+
+    let registered = lcl.main_form();
+    lcl.set_component_name(registered, "LifecycleMainForm");
+    lcl.application_on_exception((class_name: string, message: string) => {
+        lcl.set_label_caption(status, class_name + ": " + message);
+    });
+    lcl.form_on_show(form, () => {
+        lcl.set_label_caption(status, "Form shown");
+    });
+    lcl.form_on_hide(form, () => {
+        lcl.set_label_caption(status, "Form hidden");
+    });
+    lcl.form_on_activate(form, () => {
+        lcl.set_label_caption(status, "Form activated");
+    });
+    lcl.form_on_deactivate(form, () => {
+        lcl.set_label_caption(status, "Form deactivated");
+    });
+    lcl.form_on_resize(form, () => {
+        lcl.set_label_caption(status, "Form resized");
+    });
+    lcl.form_on_close_query(form, () => {
+        let can_close = lcl.checkbox_checked(allow_close);
+        can_close
+    });
+    lcl.form_on_close(form, () => {
+        lcl.set_label_caption(status, "Form closing");
+    });
+    lcl.button_on_click(close, () => {
+        lcl.close_form(form);
+    });
+
+    lcl.invoke(() => {
+        lcl.set_label_caption(status, "Synchronous invoke completed");
+    });
+    lcl.queue(() => {
+        lcl.set_label_caption(status, "Queued callback completed");
+    });
+    lcl.process_messages_bounded(1);
+
+    lcl.show_form(form);
+    lcl.run();
+    lcl.terminate();
+    lcl.terminate();
+
+    lcl.button_clear_on_click(close);
+    lcl.form_clear_on_close(form);
+    lcl.form_clear_on_close_query(form);
+    lcl.form_clear_on_resize(form);
+    lcl.form_clear_on_deactivate(form);
+    lcl.form_clear_on_activate(form);
+    lcl.form_clear_on_hide(form);
+    lcl.form_clear_on_show(form);
+    lcl.application_clear_on_exception();
+    lcl.free_checkbox(allow_close);
+    lcl.free_button(close);
+    lcl.free_label(status);
+    lcl.free_form(form);
+    0
+}

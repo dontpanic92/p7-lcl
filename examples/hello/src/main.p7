@@ -44,10 +44,10 @@ fn main() -> int {
 
     let correct = lcl.form_caption(form) == "Protosept LCL events";
     lcl.free_button(button);
-    lcl.free_panel(panel);
     lcl.free_label(status);
     lcl.free_edit(edit);
     lcl.free_label(prompt);
+    lcl.free_panel(panel);
     lcl.free_form(form);
     if correct {
         0

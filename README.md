@@ -28,9 +28,11 @@ The native binding currently provides:
   deterministic timer callbacks.
 - Rooted form `OnShow`, `OnHide`, `OnActivate`, `OnDeactivate`, and `OnResize`
   lifecycle callbacks with synchronous error propagation.
-- `examples/hello` is a separate executable package with a path dependency on
+- `examples/` contains a minimal starting point, focused examples for each
+  binding area, and a comprehensive showcase, all using path dependencies on
   the root library.
-- Both packages have Protosept tests that exercise the native extension.
+- The root package and example packages have Protosept tests that exercise the
+  native extension without requiring interactive windows.
 
 The current Protosept API is:
 
@@ -159,13 +161,20 @@ cargo run --manifest-path protosept/Cargo.toml -p p7-cli -- build .
 cargo run --manifest-path protosept/Cargo.toml -p p7-cli -- test .
 ```
 
-Run the dependent example:
+Check, build, and test the complete example gallery:
 
 ```bash
-cargo run --manifest-path protosept/Cargo.toml -p p7-cli -- check examples/hello
-cargo run --manifest-path protosept/Cargo.toml -p p7-cli -- build examples/hello
-cargo run --manifest-path protosept/Cargo.toml -p p7-cli -- test examples/hello
-cargo run --manifest-path protosept/Cargo.toml -p p7-cli -- run examples/hello
+./scripts/check-examples.sh
 ```
+
+Run an individual example:
+
+```bash
+cargo run --manifest-path protosept/Cargo.toml -p p7-cli -- run examples/hello
+cargo run --manifest-path protosept/Cargo.toml -p p7-cli -- run examples/showcase
+```
+
+See [`examples/README.md`](examples/README.md) for the coverage matrix, focused
+package commands, and the Cocoa manual-interaction checklist.
 
 Running the root package with `p7 run` is rejected because it is a library.
