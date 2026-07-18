@@ -36,17 +36,12 @@ jobs:
         include:
           - runner: macos-15
             target: aarch64-apple-darwin
-            test_target: .
-          # Lazarus 4.4 Cocoa crashes while unloading the intentional leaked-form fixture.
           - runner: macos-15-intel
             target: x86_64-apple-darwin
-            test_target: . test_controls_events.p7
           - runner: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
-            test_target: .
           - runner: windows-2025
             target: x86_64-pc-windows-msvc
-            test_target: .
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -80,10 +75,10 @@ jobs:
         run: python scripts/inspect-native.py native/lib/${{ runner.os == 'Windows' && 'p7lcl.dll' || runner.os == 'Linux' && 'libp7lcl.so' || 'libp7lcl.dylib' }}
       - name: Test root package
         if: runner.os != 'Linux'
-        run: cargo run --quiet --manifest-path protosept/Cargo.toml -p p7-cli -- test ${{ matrix.test_target }}
+        run: cargo run --quiet --manifest-path protosept/Cargo.toml -p p7-cli -- test .
       - name: Test root package under Xvfb
         if: runner.os == 'Linux'
-        run: xvfb-run -a cargo run --quiet --manifest-path protosept/Cargo.toml -p p7-cli -- test ${{ matrix.test_target }}
+        run: xvfb-run -a cargo run --quiet --manifest-path protosept/Cargo.toml -p p7-cli -- test .
       - name: Package native extension
         run: python scripts/package-release.py package --target ${{ matrix.target }}
       - name: Upload release archive

@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -195,6 +196,11 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+#ifdef _WIN32
     library_close(library);
     return 0;
+#else
+    fflush(NULL);
+    _Exit(0);
+#endif
 }
