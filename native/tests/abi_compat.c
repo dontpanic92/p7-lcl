@@ -1,3 +1,7 @@
+#ifndef _WIN32
+#define _GNU_SOURCE
+#endif
+
 #include "protosept_extension.h"
 
 #include <stddef.h>
@@ -30,6 +34,8 @@ static void print_library_error(const char *operation) {
 #include <dlfcn.h>
 typedef void *LibraryHandle;
 
+uintptr_t first_library_base;
+
 static LibraryHandle library_open(const char *path) {
     return dlopen(path, RTLD_NOW | RTLD_LOCAL);
 }
@@ -44,6 +50,16 @@ static void library_close(LibraryHandle library) {
 
 static void print_library_error(const char *operation) {
     fprintf(stderr, "%s failed: %s\n", operation, dlerror());
+}
+
+static void remember_library_base(void *symbol) {
+    Dl_info info;
+    if (dladdr(symbol, &info) != 0) {
+        first_library_base = (uintptr_t)info.dli_fbase;
+        fprintf(stderr, "abi_compat: first library base 0x%zx\n",
+                (size_t)first_library_base);
+        fflush(stderr);
+    }
 }
 #endif
 
@@ -173,6 +189,9 @@ int main(int argc, char **argv) {
         library_close(library);
         return 1;
     }
+#ifndef _WIN32
+    remember_library_base((void *)(uintptr_t)initialize);
+#endif
 
     P7HostApi current = make_host_api();
     trace_phase("first initialization");
