@@ -10,6 +10,7 @@ uses
   {$IFDEF UNIX}
   cthreads,
   {$ENDIF}
+  P7LclPlatform,
   Interfaces,
   InterfaceBase,
   Forms,
@@ -3134,11 +3135,13 @@ begin
       FreeAndNil(ApplicationEvents);
       ShutdownObjectTable(@CleanupObjectForShutdown);
       RegisteredMainForm := nil;
+      {$IFNDEF LCLCOCOA}
       ApplicationInitialized := False;
+      {$ENDIF}
       ApplicationRunStarted := False;
       ApplicationRunCompleted := False;
       ApplicationTerminateRequested := False;
-      FreeWidgetSet;
+      PrepareWidgetSetShutdown;
       ExtensionState := pesShutdown;
       Result := P7_STATUS_OK;
     except
