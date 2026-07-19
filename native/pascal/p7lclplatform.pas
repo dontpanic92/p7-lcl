@@ -4,9 +4,25 @@ unit P7LclPlatform;
 
 interface
 
+procedure PrepareWidgetSetRuntime;
 procedure PrepareWidgetSetShutdown;
 
 implementation
+
+{$IFDEF LCLCOCOA}
+uses
+  {$IFNDEF DisableCWString}
+  cwstring,
+  {$ENDIF}
+  CocoaInt,
+  CocoaWSFactory,
+  CustApp,
+  Forms,
+  InterfaceBase;
+
+var
+  RetainedApplication: TApplication;
+{$ENDIF}
 
 {$IF DEFINED(LCLGTK3) AND DEFINED(LINUX)}
 uses
@@ -61,9 +77,33 @@ begin
 end;
 {$ENDIF}
 
+procedure PrepareWidgetSetRuntime;
+begin
+  {$IFDEF LCLCOCOA}
+  if (Application = nil) and Assigned(RetainedApplication) then
+  begin
+    Application := RetainedApplication;
+    CustomApplication := Application;
+  end;
+  {$ENDIF}
+end;
+
 procedure PrepareWidgetSetShutdown;
 begin
+  {$IFDEF LCLCOCOA}
+  if Assigned(Application) then
+  begin
+    RetainedApplication := Application;
+    Application := nil;
+    CustomApplication := nil;
+  end;
+  {$ENDIF}
 end;
+
+{$IFDEF LCLCOCOA}
+initialization
+  CreateWidgetset(TCocoaWidgetSet);
+{$ENDIF}
 
 {$IF DEFINED(LCLGTK3) AND DEFINED(LINUX)}
 initialization

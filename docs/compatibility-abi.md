@@ -42,9 +42,11 @@ idempotent. Linux marks the p7-lcl image `RTLD_NODELETE`: Pango starts detached
 Fontconfig workers and registers static GTK types without an unload barrier,
 so unmapping the image while the process continues is unsafe. Protosept still
 calls `dlclose`, but the cleaned extension and live widgetset remain mapped and
-are reused by a later initialization. macOS may likewise keep Objective-C
-images resident after `dlclose`. Other platforms perform normal library and
-widgetset unload.
+are reused by a later initialization. macOS also retains its live Cocoa
+application and widgetset; p7-lcl detaches the application from LCL's standard
+unit finalizer after logical shutdown and restores it for a later runtime.
+This avoids repeated or process-exit destruction of Objective-C state. Other
+platforms perform normal library and widgetset unload.
 
 `P7Value` remains an opaque 64-bit token. Native function descriptors and API
 tables contain only fixed-width scalars, pointers, and C function pointers; no

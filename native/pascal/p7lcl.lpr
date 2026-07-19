@@ -11,7 +11,9 @@ uses
   cthreads,
   {$ENDIF}
   P7LclPlatform,
+  {$IFNDEF LCLCOCOA}
   Interfaces,
+  {$ENDIF}
   InterfaceBase,
   Forms,
   CustApp,
@@ -3085,6 +3087,7 @@ end;
 
 procedure PrepareLclRuntime;
 begin
+  PrepareWidgetSetRuntime;
   if Application = nil then
   begin
     Application := TApplication.Create(nil);

@@ -106,9 +106,12 @@ down runtime-specific state while the Protosept runtime is still alive. Linux
 marks the p7-lcl image process-resident because Pango owns detached Fontconfig
 workers and static GTK types that cannot be joined or unregistered safely.
 `dlclose` still releases Protosept's reference, while the cleaned extension and
-live GTK widgetset remain mapped for later reinitialization. Other platforms
-use their normal loader behavior. A shutdown failure is a command failure and
-the unsafe library remains loaded rather than being forcibly unloaded.
+live GTK widgetset remain mapped for later reinitialization. Cocoa likewise
+retains its application and widgetset across runtime shutdowns and leaves their
+final destruction to process termination rather than repeatedly finalizing
+Objective-C state. Other platforms use their normal loader behavior. A
+shutdown failure is a command failure and the unsafe library remains loaded
+rather than being forcibly unloaded.
 
 Managed and platform-dependent Pascal records remain opaque. The current API
 does not expose a point or rectangle record requiring a C-layout adapter;
