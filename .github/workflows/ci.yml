@@ -128,7 +128,7 @@ jobs:
           path: protosept
       - name: Install GTK3 runtime
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install --yes libgtk-3-0t64 xvfb
+        run: sudo apt-get update && sudo apt-get install --yes libgtk-3-0t64 libharfbuzz-gobject0 xvfb
       - name: Download release bundle
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:

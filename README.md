@@ -145,7 +145,8 @@ lcl = {
 
 The first project command downloads the target archive and writes its index
 and archive SHA-256 pins to `p7.lock`. Later commands use those locked URLs and
-checksums. Linux consumers need the GTK3 runtime installed; Lazarus headers and
+checksums. Ubuntu 24.04 consumers need the `libgtk-3-0t64` and
+`libharfbuzz-gobject0` runtime packages installed; Lazarus headers and
 development packages are not required.
 
 ## Commands
