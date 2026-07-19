@@ -11,7 +11,9 @@ uses
   cthreads,
   {$ENDIF}
   Interfaces,
+  InterfaceBase,
   Forms,
+  CustApp,
   Controls,
   LCLType,
   Graphics,
@@ -23,6 +25,13 @@ uses
   Classes,
   {$IFDEF LCLCOCOA}
   CocoaAll,
+  CocoaInt,
+  {$ENDIF}
+  {$IFDEF LCLGTK3}
+  Gtk3Int,
+  {$ENDIF}
+  {$IFDEF LCLWIN32}
+  Win32Int,
   {$ENDIF}
   SysUtils,
   P7LclAbi,
@@ -56,6 +65,8 @@ const
   GROUP_BOX_TYPE_TAG: PAnsiChar = 'lcl.TGroupBox';
 
 type
+  TP7ExtensionState = (pesUninitialized, pesActive, pesShuttingDown, pesShutdown);
+
   TP7Form = class(TForm)
   private
     FCloseCallback: QWord;
@@ -108,6 +119,7 @@ var
   ApplicationTerminateRequested: Boolean = False;
   RegisteredMainForm: TP7Form = nil;
   ApplicationEvents: TP7ApplicationEvents = nil;
+  ExtensionState: TP7ExtensionState = pesUninitialized;
 
 constructor TP7Form.Create(AOwner: TComponent);
 begin
@@ -325,7 +337,11 @@ end;
 procedure EnsureApplication;
 begin
   if ApplicationInitialized then
+  begin
+    if ApplicationEvents = nil then
+      ApplicationEvents := TP7ApplicationEvents.Create;
     Exit;
+  end;
   RequireDerivedFormResource := False;
   Application.Scaled := True;
   Application.ShowMainForm := False;
@@ -3066,6 +3082,74 @@ end;
 
 {$I generated/registration.inc}
 
+procedure PrepareLclRuntime;
+begin
+  if Application = nil then
+  begin
+    Application := TApplication.Create(nil);
+    CustomApplication := Application;
+  end;
+  if WidgetSet = nil then
+  begin
+    {$IFDEF LCLCOCOA}
+    CreateWidgetset(TCocoaWidgetSet);
+    {$ENDIF}
+    {$IFDEF LCLGTK3}
+    CreateWidgetset(TGtk3WidgetSet);
+    {$ENDIF}
+    {$IFDEF LCLWIN32}
+    CreateWidgetset(TWin32WidgetSet);
+    {$ENDIF}
+  end;
+end;
+
+procedure CleanupObjectForShutdown(Instance: TObject);
+begin
+  if Instance is TP7Timer then
+    TP7Timer(Instance).Enabled := False;
+  if Instance is TP7Form then
+    TP7Form(Instance).ClearAllCallbacks;
+  if Instance is TComponent then
+    ClearComponentCallbacks(TComponent(Instance));
+end;
+
+function p7_extension_shutdown_v1(Api: PP7HostApi): TP7Status; cdecl;
+begin
+  if ExtensionState = pesShutdown then
+    Exit(P7_STATUS_OK);
+  if ExtensionState = pesShuttingDown then
+    Exit(P7_STATUS_ERROR);
+  if (Api = nil) or
+     (Api^.AbiVersion <> P7_NATIVE_ABI_VERSION) or
+     (Api^.StructSize < P7HostApiRequiredSize) then
+    Exit(P7_STATUS_INVALID_ARGUMENT);
+
+  ExtensionState := pesShuttingDown;
+  Result := P7_STATUS_ERROR;
+  try
+    try
+      if ApplicationRunStarted and (Application <> nil) then
+        Application.Terminate;
+      BeginEventShutdown;
+      FreeAndNil(ApplicationEvents);
+      ShutdownObjectTable(@CleanupObjectForShutdown);
+      RegisteredMainForm := nil;
+      ApplicationInitialized := False;
+      ApplicationRunStarted := False;
+      ApplicationRunCompleted := False;
+      ApplicationTerminateRequested := False;
+      FreeWidgetSet;
+      ExtensionState := pesShutdown;
+      Result := P7_STATUS_OK;
+    except
+      Result := P7_STATUS_ERROR;
+    end;
+  finally
+    ConfigureObjectInvalidation(nil);
+    FinishEventShutdown;
+  end;
+end;
+
 function p7_extension_init_v1(Api: PP7HostApi): TP7Status; cdecl;
 begin
   try
@@ -3074,7 +3158,11 @@ begin
        (Api^.AbiVersion <> P7_NATIVE_ABI_VERSION) or
        (Api^.StructSize < P7HostApiRequiredSize) then
       Exit(P7_STATUS_INVALID_ARGUMENT);
+    if ExtensionState in [pesActive, pesShuttingDown] then
+      Exit(P7_STATUS_ERROR);
 
+    PrepareLclRuntime;
+    PrepareObjectTable;
     ConfigureCallbacks(
       Api^.InvokeRootedCallback,
       Api^.ReleaseRootedCallback,
@@ -3082,6 +3170,8 @@ begin
     );
     ConfigureObjectInvalidation(Api^.InvalidateForeignHandle);
     Result := RegisterGeneratedFunctions(Api);
+    if Result = P7_STATUS_OK then
+      ExtensionState := pesActive;
   except
     Result := P7_STATUS_ERROR;
   end;
@@ -3089,9 +3179,11 @@ end;
 
 exports
   {$IFDEF DARWIN}
-  p7_extension_init_v1 name '_p7_extension_init_v1';
+  p7_extension_init_v1 name '_p7_extension_init_v1',
+  p7_extension_shutdown_v1 name '_p7_extension_shutdown_v1';
   {$ELSE}
-  p7_extension_init_v1 name 'p7_extension_init_v1';
+  p7_extension_init_v1 name 'p7_extension_init_v1',
+  p7_extension_shutdown_v1 name 'p7_extension_shutdown_v1';
   {$ENDIF}
 
 begin

@@ -202,6 +202,8 @@ procedure ConfigureCallbacks(
   ReleaseCallback: TP7ReleaseRootedCallback;
   InvokeCallbackValues: TP7InvokeRootedCallbackValues
 );
+procedure BeginEventShutdown;
+procedure FinishEventShutdown;
 function ConsumeCallbackError: String;
 function EventCallbackActive: Boolean;
 procedure InvokeVoidEvent(Runtime: Pointer; Token: QWord);
@@ -222,6 +224,9 @@ var
   InvokeRootedCallbackValues: TP7InvokeRootedCallbackValues;
   CallbackError: String;
   CallbackDepth: Integer;
+  QueuedEvents: TList;
+  QueuedObjectFrees: TList;
+  EventsShuttingDown: Boolean;
 
 type
   TP7QueuedEvent = class
@@ -231,6 +236,7 @@ type
     procedure ExecuteQueued(Data: PtrInt);
   public
     constructor Create(Runtime: Pointer; Token: QWord);
+    procedure Cancel;
   end;
 
   TP7QueuedObjectFree = class
@@ -239,6 +245,7 @@ type
     procedure ExecuteQueued(Data: PtrInt);
   public
     constructor Create(Instance: TObject);
+    function DetachInstance: TObject;
   end;
 
 procedure ConfigureCallbacks(
@@ -250,6 +257,91 @@ begin
   InvokeRootedCallback := InvokeCallback;
   ReleaseRootedCallback := ReleaseCallback;
   InvokeRootedCallbackValues := InvokeCallbackValues;
+  EventsShuttingDown := False;
+end;
+
+procedure RemoveQueuedItem(List: TList; Item: TObject);
+begin
+  if List <> nil then
+    List.Remove(Item);
+end;
+
+procedure CancelQueuedEvents;
+var
+  Item: TP7QueuedEvent;
+begin
+  while (QueuedEvents <> nil) and (QueuedEvents.Count > 0) do
+  begin
+    Item := TP7QueuedEvent(QueuedEvents[QueuedEvents.Count - 1]);
+    QueuedEvents.Delete(QueuedEvents.Count - 1);
+    if Application <> nil then
+      Application.RemoveAsyncCalls(Item);
+    Item.Cancel;
+  end;
+  FreeAndNil(QueuedEvents);
+end;
+
+procedure CancelQueuedObjectFrees;
+var
+  Index, ItemCount, Candidate: Integer;
+  Item: TP7QueuedObjectFree;
+  Instances: array of TObject;
+  FreeInstance: array of Boolean;
+begin
+  if QueuedObjectFrees = nil then
+    Exit;
+  ItemCount := QueuedObjectFrees.Count;
+  SetLength(Instances, ItemCount);
+  SetLength(FreeInstance, ItemCount);
+  for Index := 0 to ItemCount - 1 do
+  begin
+    Item := TP7QueuedObjectFree(QueuedObjectFrees[Index]);
+    if Application <> nil then
+      Application.RemoveAsyncCalls(Item);
+    Instances[Index] := Item.DetachInstance;
+    Item.Free;
+  end;
+  for Index := 0 to ItemCount - 1 do
+  begin
+    FreeInstance[Index] := Instances[Index] <> nil;
+    for Candidate := 0 to Index - 1 do
+      if Instances[Candidate] = Instances[Index] then
+      begin
+        FreeInstance[Index] := False;
+        Break;
+      end;
+    if Instances[Index] is TComponent then
+      for Candidate := 0 to ItemCount - 1 do
+        if Instances[Candidate] = TComponent(Instances[Index]).Owner then
+        begin
+          FreeInstance[Index] := False;
+          Break;
+        end;
+  end;
+  FreeAndNil(QueuedObjectFrees);
+  for Index := 0 to ItemCount - 1 do
+    if FreeInstance[Index] then
+      Instances[Index].Free;
+  Instances := nil;
+  FreeInstance := nil;
+end;
+
+procedure BeginEventShutdown;
+begin
+  if EventsShuttingDown then
+    Exit;
+  EventsShuttingDown := True;
+  CancelQueuedEvents;
+  CancelQueuedObjectFrees;
+end;
+
+procedure FinishEventShutdown;
+begin
+  CallbackError := '';
+  CallbackDepth := 0;
+  InvokeRootedCallback := nil;
+  ReleaseRootedCallback := nil;
+  InvokeRootedCallbackValues := nil;
 end;
 
 procedure SetCallbackError(Status: TP7Status);
@@ -307,7 +399,8 @@ var
   Status: TP7Status;
 begin
   FillChar(Output, SizeOf(Output), 0);
-  if (Token = 0) or not Assigned(InvokeRootedCallbackValues) then
+  if EventsShuttingDown or (Token = 0) or
+     not Assigned(InvokeRootedCallbackValues) then
     Exit(False);
   Inc(CallbackDepth);
   try
@@ -328,7 +421,8 @@ procedure InvokeVoidEvent(Runtime: Pointer; Token: QWord);
 var
   Status: TP7Status;
 begin
-  if (Token = 0) or not Assigned(InvokeRootedCallback) then
+  if EventsShuttingDown or (Token = 0) or
+     not Assigned(InvokeRootedCallback) then
     Exit;
   Inc(CallbackDepth);
   try
@@ -348,21 +442,37 @@ end;
 
 procedure TP7QueuedObjectFree.ExecuteQueued(Data: PtrInt);
 begin
+  RemoveQueuedItem(QueuedObjectFrees, Self);
   try
-    FInstance.Free;
+    FreeAndNil(FInstance);
   finally
     Free;
   end;
+end;
+
+function TP7QueuedObjectFree.DetachInstance: TObject;
+begin
+  Result := FInstance;
+  FInstance := nil;
 end;
 
 procedure QueueObjectFree(Instance: TObject);
 var
   QueuedFree: TP7QueuedObjectFree;
 begin
+  if EventsShuttingDown then
+  begin
+    Instance.Free;
+    Exit;
+  end;
   QueuedFree := TP7QueuedObjectFree.Create(Instance);
+  if QueuedObjectFrees = nil then
+    QueuedObjectFrees := TList.Create;
+  QueuedObjectFrees.Add(QueuedFree);
   try
     Application.QueueAsyncCall(@QueuedFree.ExecuteQueued, 0);
   except
+    QueuedObjectFrees.Remove(QueuedFree);
     QueuedFree.Free;
     raise;
   end;
@@ -377,6 +487,7 @@ end;
 
 procedure TP7QueuedEvent.ExecuteQueued(Data: PtrInt);
 begin
+  RemoveQueuedItem(QueuedEvents, Self);
   try
     InvokeVoidEvent(FRuntime, FToken);
   finally
@@ -385,14 +496,30 @@ begin
   end;
 end;
 
+procedure TP7QueuedEvent.Cancel;
+begin
+  ReleaseEvent(FRuntime, FToken);
+  FRuntime := nil;
+  Free;
+end;
+
 procedure QueueVoidEvent(Runtime: Pointer; Token: QWord);
 var
   QueuedEvent: TP7QueuedEvent;
 begin
+  if EventsShuttingDown then
+  begin
+    ReleaseEvent(Runtime, Token);
+    Exit;
+  end;
   QueuedEvent := TP7QueuedEvent.Create(Runtime, Token);
+  if QueuedEvents = nil then
+    QueuedEvents := TList.Create;
+  QueuedEvents.Add(QueuedEvent);
   try
     Application.QueueAsyncCall(@QueuedEvent.ExecuteQueued, 0);
   except
+    QueuedEvents.Remove(QueuedEvent);
     QueuedEvent.Free;
     raise;
   end;
@@ -432,7 +559,7 @@ end;
 
 function EventCallbackActive: Boolean;
 begin
-  Result := CallbackDepth <> 0;
+  Result := not EventsShuttingDown and (CallbackDepth <> 0);
 end;
 
 procedure TP7Button.HandleClick(Sender: TObject);
@@ -1075,5 +1202,9 @@ begin
   FCallback := Token;
   OnChange := @HandleChange;
 end;
+
+finalization
+  BeginEventShutdown;
+  FinishEventShutdown;
 
 end.

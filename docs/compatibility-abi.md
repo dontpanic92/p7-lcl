@@ -22,8 +22,9 @@ and a versioning decision.
 
 ## Extension ABI
 
-p7-lcl implements Protosept native extension ABI v1 and exports only
-`p7_extension_init_v1`. The normative declarations are
+p7-lcl implements Protosept native extension ABI v1 and exports
+`p7_extension_init_v1` plus the optional lifecycle entry point
+`p7_extension_shutdown_v1`. The normative declarations are
 `protosept/p7/include/protosept_extension.h`; the matching Pascal declarations
 are centralized in `native/pascal/p7lclabi.pas`.
 
@@ -34,6 +35,13 @@ shorter table or an ABI version other than 1. The runtime rejects truncated
 `P7NativeFunctionDescriptor` values and accepts descriptors with appended
 fields.
 
+Protosept invokes shutdown while its runtime and rooted-callback API are still
+valid. p7-lcl cancels queued async calls, disables event sources, releases
+rooted tokens, destroys tracked LCL objects, and frees the widgetset before
+returning. The hook is idempotent. macOS may keep Objective-C images resident
+after `dlclose`; a later initialization recreates the LCL application and
+widgetset rather than relying on library initializers to run again.
+
 `P7Value` remains an opaque 64-bit token. Native function descriptors and API
 tables contain only fixed-width scalars, pointers, and C function pointers; no
 Rust or Pascal managed type crosses the boundary.
@@ -41,8 +49,9 @@ Rust or Pascal managed type crosses the boundary.
 ## Callback ABI
 
 Rooted callback tokens are runtime-owned, monotonic, and explicitly released.
-The runtime pointer and callback operations are single-threaded and valid only
-until runtime teardown.
+The runtime pointer and callback operations are single-threaded and remain
+valid through `p7_extension_shutdown_v1`; p7-lcl clears every copied host
+function pointer before the hook returns.
 
 `P7CallbackValue.kind` is frozen as:
 

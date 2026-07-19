@@ -1059,3 +1059,28 @@ fn test_application_terminate_is_idempotent_and_run_cannot_restart() {
     lcl.run();
     lcl.free_form(form);
 }
+
+@test(expected_type = "int", expected_value = "1")
+fn test_runtime_shutdown_cleans_pending_native_state() -> int {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let label = lcl.new_label(form);
+    let button = lcl.new_button(form);
+    let timer = lcl.new_timer(form);
+    lcl.set_timer_enabled(timer, true);
+    lcl.timer_on_timer(timer, (sender: handle<lcl.Component>) => {
+        lcl.set_label_caption(label, "timer");
+    });
+    lcl.application_on_exception((class_name: string, message: string) => {
+        lcl.set_label_caption(label, class_name + message);
+    });
+    lcl.queue(() => {
+        lcl.set_label_caption(label, "queued");
+    });
+    lcl.button_on_click(button, () => {
+        lcl.free_button(button);
+        lcl.free_form(form);
+    });
+    lcl.click_button(button);
+    1
+}

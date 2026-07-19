@@ -99,6 +99,13 @@ the next `lcl.process_messages()` or `lcl.run()` call. The Pascal object table
 validates slot generations on every call, so released or owner-destroyed
 objects produce a native runtime trap instead of dereferencing stale memory.
 
+Protosept shuts the native extension down explicitly before unloading it.
+p7-lcl cancels pending queued callbacks and deferred object frees, disables
+timers, releases rooted callbacks, destroys unreleased LCL objects, and tears
+down the widgetset while the Protosept runtime is still alive. A shutdown
+failure is a command failure and the unsafe library remains loaded rather than
+being forcibly unloaded.
+
 Managed and platform-dependent Pascal records remain opaque. The current API
 does not expose a point or rectangle record requiring a C-layout adapter;
 coordinates and bounds cross the ABI as fixed-width scalar arguments.
@@ -171,8 +178,9 @@ drift without building Lazarus:
 
 The frozen package, ownership, error, extension, and callback compatibility
 contract is documented in [`docs/compatibility-abi.md`](docs/compatibility-abi.md).
-After building the native library, verify older/newer `struct_size` behavior
-and Rust/C/Free Pascal layouts with:
+After building the native library, verify older/newer `struct_size` behavior,
+the required p7-lcl shutdown entry point, normal library unload, and
+Rust/C/Free Pascal layouts with:
 
 ```bash
 ./scripts/check-abi.sh

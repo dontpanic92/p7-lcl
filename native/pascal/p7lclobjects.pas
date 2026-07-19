@@ -11,8 +11,10 @@ type
     TypeTagLength: PtrUInt;
     Handle: Int64
   ): LongWord; cdecl;
+  TP7ObjectCleanup = procedure(Instance: TObject);
 
 procedure ConfigureObjectInvalidation(InvalidateHandle: TP7InvalidateRuntimeHandle);
+procedure PrepareObjectTable;
 function AddObject(Instance: TObject; Runtime: Pointer; const TypeTag: UTF8String): Int64;
 function FindObject(Handle: Int64; ExpectedClass: TClass): TObject;
 function FindObjectOrNil(Handle: Int64; ExpectedClass: TClass): TObject;
@@ -20,6 +22,7 @@ function FindObjectHandle(Instance: TObject; out Handle: Int64;
   out TypeTag: UTF8String): Boolean;
 function DetachObject(Handle: Int64): TObject;
 procedure ReleaseObject(Handle: Int64);
+procedure ShutdownObjectTable(Cleanup: TP7ObjectCleanup);
 
 implementation
 
@@ -53,6 +56,13 @@ var
 procedure ConfigureObjectInvalidation(InvalidateHandle: TP7InvalidateRuntimeHandle);
 begin
   InvalidateRuntimeHandle := InvalidateHandle;
+end;
+
+procedure PrepareObjectTable;
+begin
+  if Length(ObjectSlots) <> 0 then
+    raise Exception.Create('LCL object table is not empty during initialization');
+  ObjectTableShuttingDown := False;
 end;
 
 function EncodeHandle(Index, Generation: LongWord): Int64;
@@ -221,20 +231,62 @@ begin
   FreeAndNil(ObjectSlots[Index].Notifier);
 end;
 
-procedure ReleaseAllObjects;
+function ObjectIsTracked(Instance: TObject): Boolean;
 var
   Index: Integer;
 begin
+  for Index := 0 to High(ObjectSlots) do
+    if ObjectSlots[Index].Instance = Instance then
+      Exit(True);
+  Result := False;
+end;
+
+procedure ShutdownObjectTable(Cleanup: TP7ObjectCleanup);
+var
+  Index: Integer;
+  Handle: Int64;
+  Instance: TObject;
+begin
+  if ObjectTableShuttingDown then
+    Exit;
   ObjectTableShuttingDown := True;
+
+  if Assigned(Cleanup) then
+    for Index := 0 to High(ObjectSlots) do
+      if ObjectSlots[Index].Instance <> nil then
+        Cleanup(ObjectSlots[Index].Instance);
+
   for Index := 0 to High(ObjectSlots) do
   begin
-    FreeAndNil(ObjectSlots[Index].Instance);
+    Instance := ObjectSlots[Index].Instance;
+    if Instance = nil then
+      Continue;
+    if not (Instance is TComponent) or
+       (TComponent(Instance).Owner = nil) or
+       not ObjectIsTracked(TComponent(Instance).Owner) then
+    begin
+      Handle := EncodeHandle(LongWord(Index), ObjectSlots[Index].Generation);
+      Instance := DetachObject(Handle);
+      Instance.Free;
+    end;
+  end;
+
+  for Index := 0 to High(ObjectSlots) do
+  begin
+    Instance := ObjectSlots[Index].Instance;
+    if Instance <> nil then
+    begin
+      Handle := EncodeHandle(LongWord(Index), ObjectSlots[Index].Generation);
+      Instance := DetachObject(Handle);
+      Instance.Free;
+    end;
     FreeAndNil(ObjectSlots[Index].Notifier);
   end;
   ObjectSlots := nil;
+  InvalidateRuntimeHandle := nil;
 end;
 
 finalization
-  ReleaseAllObjects;
+  ShutdownObjectTable(nil);
 
 end.

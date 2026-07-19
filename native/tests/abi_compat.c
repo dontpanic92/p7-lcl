@@ -159,6 +159,14 @@ int main(int argc, char **argv) {
         library_close(library);
         return 1;
     }
+    P7ExtensionShutdown shutdown =
+        (P7ExtensionShutdown)(uintptr_t)library_symbol(
+            library, P7_EXTENSION_SHUTDOWN_SYMBOL);
+    if (shutdown == NULL) {
+        print_library_error("loading p7_extension_shutdown_v1");
+        library_close(library);
+        return 1;
+    }
 
     P7HostApi current = make_host_api();
     if (initialize(&current) != P7_STATUS_OK) {
@@ -175,6 +183,42 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    P7HostApi wrong_version = make_host_api();
+    wrong_version.abi_version++;
+    if (initialize(&wrong_version) != P7_STATUS_INVALID_ARGUMENT) {
+        fprintf(stderr, "unknown ABI version was not rejected\n");
+        library_close(library);
+        return 1;
+    }
+
+    if (initialize(&current) != P7_STATUS_ERROR) {
+        fprintf(stderr, "duplicate active initialization was accepted\n");
+        library_close(library);
+        return 1;
+    }
+
+    if (shutdown(&current) != P7_STATUS_OK) {
+        fprintf(stderr, "extension shutdown failed\n");
+        library_close(library);
+        return 1;
+    }
+    library_close(library);
+
+    library = library_open(argv[1]);
+    if (library == NULL) {
+        print_library_error("reloading native extension");
+        return 1;
+    }
+    initialize = (P7ExtensionInit)(uintptr_t)library_symbol(
+        library, P7_EXTENSION_INIT_SYMBOL);
+    shutdown = (P7ExtensionShutdown)(uintptr_t)library_symbol(
+        library, P7_EXTENSION_SHUTDOWN_SYMBOL);
+    if ((initialize == NULL) || (shutdown == NULL)) {
+        print_library_error("reloading extension lifecycle symbols");
+        library_close(library);
+        return 1;
+    }
+
     struct {
         P7HostApi api;
         uintptr_t future_fields[4];
@@ -187,20 +231,11 @@ int main(int argc, char **argv) {
         library_close(library);
         return 1;
     }
-
-    P7HostApi wrong_version = make_host_api();
-    wrong_version.abi_version++;
-    if (initialize(&wrong_version) != P7_STATUS_INVALID_ARGUMENT) {
-        fprintf(stderr, "unknown ABI version was not rejected\n");
+    if (shutdown(&newer.api) != P7_STATUS_OK) {
+        fprintf(stderr, "reloaded extension shutdown failed\n");
         library_close(library);
         return 1;
     }
-
-#ifdef _WIN32
     library_close(library);
     return 0;
-#else
-    fflush(NULL);
-    _Exit(0);
-#endif
 }

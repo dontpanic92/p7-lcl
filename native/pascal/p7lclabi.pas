@@ -10,6 +10,8 @@ uses
 
 const
   P7_NATIVE_ABI_VERSION = 1;
+  P7_EXTENSION_INIT_SYMBOL = 'p7_extension_init_v1';
+  P7_EXTENSION_SHUTDOWN_SYMBOL = 'p7_extension_shutdown_v1';
 
   P7_STATUS_OK = 0;
   P7_STATUS_ERROR = 1;
@@ -134,6 +136,8 @@ type
     ReleaseRootedCallback: TP7ReleaseRootedCallback;
     InvokeRootedCallbackValues: TP7InvokeRootedCallbackValues;
   end;
+  TP7ExtensionInit = function(Api: PP7HostApi): TP7Status; cdecl;
+  TP7ExtensionShutdown = function(Api: PP7HostApi): TP7Status; cdecl;
 
   TP7ValueKindFn = function(Api: PP7CallApi; Value: TP7Value): LongWord; cdecl;
   TP7GetIntFn = function(
