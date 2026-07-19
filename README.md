@@ -102,10 +102,11 @@ objects produce a native runtime trap instead of dereferencing stale memory.
 Protosept shuts the native extension down explicitly before unloading it.
 p7-lcl cancels pending queued callbacks and deferred object frees, disables
 timers, releases rooted callbacks, destroys unreleased LCL objects, and tears
-down runtime-specific state while the Protosept runtime is still alive. GTK
-process-global hooks are neutralized before unload; Pascal unit finalizers
-perform the widgetset teardown once. A shutdown failure is a command failure
-and the unsafe library remains loaded rather than being forcibly unloaded.
+down runtime-specific state while the Protosept runtime is still alive. GTK's
+widgetset-owned GLib source is removed and its process-global poll and
+event-dispatch hooks are restored before unload; Pascal unit finalizers perform
+the widgetset teardown once. A shutdown failure is a command failure and the
+unsafe library remains loaded rather than being forcibly unloaded.
 
 Managed and platform-dependent Pascal records remain opaque. The current API
 does not expose a point or rectangle record requiring a C-layout adapter;

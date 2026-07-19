@@ -140,12 +140,18 @@ static P7HostApi make_host_api(void) {
     return api;
 }
 
+static void trace_phase(const char *phase) {
+    fprintf(stderr, "abi_compat: %s\n", phase);
+    fflush(stderr);
+}
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "usage: %s <extension>\n", argv[0]);
         return 2;
     }
 
+    trace_phase("first load");
     LibraryHandle library = library_open(argv[1]);
     if (library == NULL) {
         print_library_error("loading native extension");
@@ -169,6 +175,7 @@ int main(int argc, char **argv) {
     }
 
     P7HostApi current = make_host_api();
+    trace_phase("first initialization");
     if (initialize(&current) != P7_STATUS_OK) {
         fprintf(stderr, "current host table was rejected\n");
         library_close(library);
@@ -197,13 +204,16 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    trace_phase("first shutdown");
     if (shutdown(&current) != P7_STATUS_OK) {
         fprintf(stderr, "extension shutdown failed\n");
         library_close(library);
         return 1;
     }
+    trace_phase("first unload");
     library_close(library);
 
+    trace_phase("second load");
     library = library_open(argv[1]);
     if (library == NULL) {
         print_library_error("reloading native extension");
@@ -226,16 +236,20 @@ int main(int argc, char **argv) {
     memset(&newer, 0, sizeof(newer));
     newer.api = make_host_api();
     newer.api.struct_size = sizeof(newer);
+    trace_phase("second initialization");
     if (initialize(&newer.api) != P7_STATUS_OK) {
         fprintf(stderr, "extended host table was rejected\n");
         library_close(library);
         return 1;
     }
+    trace_phase("second shutdown");
     if (shutdown(&newer.api) != P7_STATUS_OK) {
         fprintf(stderr, "reloaded extension shutdown failed\n");
         library_close(library);
         return 1;
     }
+    trace_phase("second unload");
     library_close(library);
+    trace_phase("complete");
     return 0;
 }

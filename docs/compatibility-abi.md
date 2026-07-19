@@ -37,9 +37,10 @@ fields.
 
 Protosept invokes shutdown while its runtime and rooted-callback API are still
 valid. p7-lcl cancels queued async calls, disables event sources, releases
-rooted tokens, destroys tracked LCL objects, and neutralizes process-global
-GTK hooks before returning. The normal Pascal unit finalizers then destroy the
-application and widgetset during actual library unload. The hook is
+rooted tokens, destroys tracked LCL objects, removes the widgetset-owned GLib
+source, and restores the prior GLib poll hook plus GTK's standard GDK event
+dispatcher before returning. The normal Pascal unit finalizers then destroy
+the application and widgetset during actual library unload. The hook is
 idempotent. macOS may keep Objective-C images resident after `dlclose`; in
 that case p7-lcl reuses the live LCL application and widgetset while replacing
 all runtime-specific callbacks and objects.
