@@ -42,6 +42,31 @@ def run(command, **kwargs):
     subprocess.run([str(item) for item in command], check=True, **kwargs)
 
 
+def run_abi_probe(command, executable, library):
+    try:
+        run(command)
+    except subprocess.CalledProcessError:
+        gdb = shutil.which("gdb")
+        if platform.system() == "Linux" and gdb:
+            debug_command = [
+                gdb,
+                "--batch",
+                "-ex",
+                "set pagination off",
+                "-ex",
+                "run",
+                "-ex",
+                "thread apply all backtrace full",
+                "--args",
+                executable,
+                library,
+            ]
+            if not os.environ.get("DISPLAY") and shutil.which("xvfb-run"):
+                debug_command = ["xvfb-run", "-a", *debug_command]
+            subprocess.run([str(item) for item in debug_command], check=False)
+        raise
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check the p7 native extension ABI")
     parser.add_argument("--library", type=Path, default=default_library())
@@ -69,7 +94,7 @@ def main() -> int:
             abi_compat,
         ]
         if platform.system() == "Linux":
-            compile_command.append("-ldl")
+            compile_command.extend(["-g", "-rdynamic", "-ldl"])
         run(compile_command)
         abi_command = [abi_compat, library]
         if (
@@ -78,7 +103,7 @@ def main() -> int:
             and shutil.which("xvfb-run")
         ):
             abi_command = ["xvfb-run", "-a", *abi_command]
-        run(abi_command)
+        run_abi_probe(abi_command, abi_compat, library)
 
         abi_layout = temp_dir / f"abi_layout{executable_suffix}"
         run(

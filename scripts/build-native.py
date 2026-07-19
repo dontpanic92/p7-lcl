@@ -93,6 +93,8 @@ def main() -> int:
         command.append(f"--compiler={compiler}")
     if target_os == "darwin" and os.environ.get("P7_LCL_DARWIN_LD_CLASSIC", "1") != "0":
         command.append("--opt=-k-ld_classic")
+    if os.environ.get("P7_LCL_DEBUG_INFO") == "1":
+        command.extend(["--opt=-gw3", "--opt=-gl"])
 
     command.append(str(ROOT / "native" / "pascal" / "p7lcl.lpi"))
     subprocess.run(command, check=True)
