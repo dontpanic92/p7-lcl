@@ -61,6 +61,17 @@ static void remember_library_base(void *symbol) {
         fflush(stderr);
     }
 }
+
+#ifdef __linux__
+static int library_is_resident(const char *path) {
+    LibraryHandle resident = dlopen(path, RTLD_NOW | RTLD_NOLOAD);
+    if (resident == NULL) {
+        return 0;
+    }
+    dlclose(resident);
+    return 1;
+}
+#endif
 #endif
 
 #if UINTPTR_MAX == UINT64_MAX
@@ -231,6 +242,12 @@ int main(int argc, char **argv) {
     }
     trace_phase("first unload");
     library_close(library);
+#ifdef __linux__
+    if (!library_is_resident(argv[1])) {
+        fprintf(stderr, "Linux extension did not remain process-resident\n");
+        return 1;
+    }
+#endif
 
     trace_phase("second load");
     library = library_open(argv[1]);

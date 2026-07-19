@@ -37,13 +37,14 @@ fields.
 
 Protosept invokes shutdown while its runtime and rooted-callback API are still
 valid. p7-lcl cancels queued async calls, disables event sources, releases
-rooted tokens, destroys tracked LCL objects, removes the widgetset-owned GLib
-source, and restores the prior GLib poll hook plus GTK's standard GDK event
-dispatcher before returning. The normal Pascal unit finalizers then destroy
-the application and widgetset during actual library unload. The hook is
-idempotent. macOS may keep Objective-C images resident after `dlclose`; in
-that case p7-lcl reuses the live LCL application and widgetset while replacing
-all runtime-specific callbacks and objects.
+rooted tokens, and destroys tracked LCL objects before returning. The hook is
+idempotent. Linux marks the p7-lcl image `RTLD_NODELETE`: Pango starts detached
+Fontconfig workers and registers static GTK types without an unload barrier,
+so unmapping the image while the process continues is unsafe. Protosept still
+calls `dlclose`, but the cleaned extension and live widgetset remain mapped and
+are reused by a later initialization. macOS may likewise keep Objective-C
+images resident after `dlclose`. Other platforms perform normal library and
+widgetset unload.
 
 `P7Value` remains an opaque 64-bit token. Native function descriptors and API
 tables contain only fixed-width scalars, pointers, and C function pointers; no
