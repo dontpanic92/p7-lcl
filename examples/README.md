@@ -35,17 +35,19 @@ Replace `layout` with any directory listed above.
 ## Managed references in the showcase
 
 [`showcase/src/session.p7`](showcase/src/session.p7) installs the existing Add
-button and timer callbacks around one mutable `State` local. It takes `&state`
-and returns that reference to the caller. The native-rooted closures retain the
-same slot after `session.install` returns: Add increments the added-item count,
+button and timer callbacks around one mutable `State` local. It returns `&state`
+to the caller and captures `&state.added` and `&state.ticks` directly in the
+native-rooted callbacks. Those field references retain the original owner after
+`session.install` returns: Add increments the added-item count,
 the timer increments the tick count, and both display the current counts in the
 status bar. **File > Clear output** calls `session.reset`, replacing `*state`
 with `State(0, 0)`. Already-installed callbacks see the replacement rather than
 a stale snapshot.
 
-The main form is explicitly typed `&lcl.Form`, converted from the owning box
-returned by `lcl.new_form()`. The native API still allocates an owned foreign
-cell; the conversion preserves its identity and finalizer. Child controls and
+`lcl.new_form()` returns `&lcl.Form` directly. Its native implementation still
+allocates an owned foreign cell, but neither construction nor form-operation
+signatures expose that implementation box. Normalization preserves its identity
+and finalizer; no projected referent is copied or reboxed. Child controls and
 event senders remain `handle<lcl.*>` because their native LCL owner, not the
 script reference, controls their lifetime. Do not convert an unowned child
 handle into `&lcl.*`.
@@ -63,6 +65,13 @@ runner as `main`, shows its full window, enters the LCL event loop, and terminat
 through a queued callback without waiting for manual interaction. The runner's
 `on_ready` hook queues termination after the initial show/focus work, because
 showing an LCL form can itself pump queued callbacks before `run` starts.
+
+The root package's `tests/test_retained_boundaries.p7` additionally drives real
+native event roots with a protocol-packaged field projection whose enclosing
+record owns a form.
+Allocation pressure triggers collection after setup exits; the callback still
+sees replacement state. Clearing or replacing the callback, or destroying its
+button, releases the owner so its form finalizes and its child handle is rejected.
 
 ## Manual runs
 

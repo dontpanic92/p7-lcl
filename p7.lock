@@ -3,7 +3,7 @@ version = 2
 [[package]]
 name = "lcl"
 version = "0.1.0"
-checksum = "ce41cedf29b2bf4916b1542342cc9b69ddf899bc4f73d644fef417f6ee89d9b2"
+checksum = "849e505e2e5de7101ff1ea995a7575db9300bc91e9fb4fabbca79586cf9a6077"
 
 [package.source]
 kind = "path"

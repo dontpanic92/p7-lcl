@@ -75,19 +75,23 @@ with `lcl.register_main_form(form)` before `lcl.run()`. Registration can be
 changed until running starts, but an application loop runs only once and cannot
 be restarted after it returns or is terminated.
 
-`lcl.new_form()` still returns an owning `box<lcl.Form>`. Form operations accept
-`&lcl.Form`, so callers can retain the same owned foreign cell without allocating
-a new box:
+`lcl.new_form()` returns `&lcl.Form`, and ordinary form operations accept that
+same managed reference. Scripts do not need to name or recover a box:
 
 ```p7
-let form: &lcl.Form = lcl.new_form();
+let form = lcl.new_form();
 lcl.queue(() => {
     lcl.set_form_caption(form, "Updated through a retained reference");
 });
 ```
 
-The box-to-reference conversion shares identity and keeps native ownership and
-finalization intact. Explicit `lcl.free_form(form)` still invalidates all aliases;
+The native constructor still creates its owned foreign token internally;
+normalization exposes a reference to that same cell, without copying or
+reboxing it. Native ownership and exactly-once finalization remain unchanged.
+Existing `box<lcl.Form>` inputs still reduce to `&lcl.Form`; a script variable
+explicitly annotated `box<lcl.Form>` for `new_form()` should now use `&lcl.Form`
+or inferred `let` instead, since managed references cannot recover boxes.
+Explicit `lcl.free_form(form)` still invalidates all aliases;
 a retained reference does not undo explicit native destruction. Controls are
 returned as persistent non-owning
 `handle<lcl.*>` values. Their LCL owner is the form, and owner destruction
@@ -105,6 +109,13 @@ return replacement values for Pascal `var` parameters. Mouse callbacks receive
 the sender, button, shift-state bits, and coordinates; focus and keyboard
 callbacks receive dynamically typed sender handles that can be checked and
 downcast.
+
+Rooted closures can capture `&T` fields directly. The root traces the original
+owner and fixed field projection rather than a copied referent; callbacks
+resolve that field through the current owner each time. Replacing the enclosing
+state is therefore observable after its setup function returns and across
+garbage collection. Clearing/replacing the callback, destroying its component,
+or shutting down the extension releases that root.
 
 Synchronous event-trigger helpers return callback failures immediately.
 Failures from `lcl.queue()` or other asynchronous LCL dispatch are retained,
@@ -138,7 +149,7 @@ longer needed.
 
 `protosept` is a remote-backed Git submodule tracking the
 `dontpanic92-managed-references` branch. Its gitlink and `protosept.rev` pin
-`63512e1a11300e57cc622a06e7b8607179638e3c`; normal builds and CI use that exact
+`d3c62654541c68b1e15e920abd88a1de0cb2963c`; normal builds and CI use that exact
 commit, not the current branch tip. Initialize it before building:
 
 ```bash

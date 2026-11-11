@@ -1,0 +1,86 @@
+import test.test;
+import lcl;
+
+proto Reading {
+    fn current(ref self) -> int;
+}
+
+struct[Reading] Counter(pub value: int) {
+    fn current(ref self) -> int { self.value }
+}
+
+struct CallbackOwner(pub form: &lcl.Form, pub value: Counter);
+struct Allocation(pub value: int);
+
+fn collect_with_allocation_pressure() {
+    let mut i = 0;
+    while i < 256 {
+        let allocation = &Allocation(i);
+        i = allocation.value + 1;
+    }
+}
+
+fn install_projected_owner(button: handle<lcl.Button>) -> handle<lcl.Label> {
+    let mut owner = CallbackOwner(lcl.new_form(), Counter(1));
+    let label = lcl.new_label(owner.form);
+    let value = &owner.value as &Reading;
+    lcl.button_on_click(button, () => {
+        let current = value.current();
+        lcl.set_label_caption(label, f"{current}");
+    });
+    owner = CallbackOwner(owner.form, Counter(42));
+    label
+}
+
+@test(expected_type = "string", expected_value = "42")
+fn test_native_root_keeps_projected_owner_after_frame_exit_and_gc() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let button = lcl.new_button(form);
+    let label = install_projected_owner(button);
+    collect_with_allocation_pressure();
+    lcl.click_button(button);
+    let result = lcl.label_caption(label);
+    lcl.button_clear_on_click(button);
+    lcl.free_form(form);
+    result
+}
+
+@test(runtime_error = "status StaleHandle")
+fn test_clearing_native_root_finalizes_projected_owner() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let button = lcl.new_button(form);
+    let label = install_projected_owner(button);
+    collect_with_allocation_pressure();
+    lcl.click_button(button);
+    lcl.button_clear_on_click(button);
+    collect_with_allocation_pressure();
+    lcl.label_caption(label)
+}
+
+@test(runtime_error = "status StaleHandle")
+fn test_replacing_native_root_finalizes_previous_projected_owner() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let button = lcl.new_button(form);
+    let label = install_projected_owner(button);
+    collect_with_allocation_pressure();
+    lcl.click_button(button);
+    lcl.button_on_click(button, () => {});
+    collect_with_allocation_pressure();
+    lcl.label_caption(label)
+}
+
+@test(runtime_error = "status StaleHandle")
+fn test_destroying_native_component_releases_projected_root() -> string {
+    lcl.initialize();
+    let form = lcl.new_form();
+    let button = lcl.new_button(form);
+    let label = install_projected_owner(button);
+    collect_with_allocation_pressure();
+    lcl.click_button(button);
+    lcl.free_button(button);
+    collect_with_allocation_pressure();
+    lcl.label_caption(label)
+}

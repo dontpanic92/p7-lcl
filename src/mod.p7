@@ -372,7 +372,7 @@ fn native_win_control_tab_order(control: handle<WinControl>) -> ffi.i32;
 fn native_set_win_control_tab_order(control: handle<WinControl>, tab_order: ffi.i32);
 
 @intrinsic(name="p7lcl.form.create")
-fn native_create_form() -> box<Form>;
+fn native_create_form() -> &Form;
 
 @intrinsic(name="p7lcl.form.set_caption")
 fn native_set_form_caption(form: &Form, caption: string);
@@ -1120,7 +1120,7 @@ pub fn set_win_control_tab_order(control: handle<WinControl>, tab_order: ffi.i32
     native_set_win_control_tab_order(control, tab_order)
 }
 
-pub fn new_form() -> box<Form> {
+pub fn new_form() -> &Form {
     native_create_form()
 }
 

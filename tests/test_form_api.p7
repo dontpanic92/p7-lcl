@@ -1,6 +1,40 @@
 import test.test;
 import lcl;
 
+@intrinsic(name="p7lcl.form.create")
+fn legacy_owned_form() -> box<lcl.Form>;
+
+struct FormSelection(pub current: &lcl.Form);
+
+@test(expected_type = "string", expected_value = "Original:Current")
+fn test_native_argument_resolves_current_reference_field() -> string {
+    lcl.initialize();
+    let first = lcl.new_form();
+    let second = lcl.new_form();
+    lcl.set_form_caption(first, "Original");
+    let mut selection = FormSelection(first);
+    let shared = &selection;
+    lcl.queue(() => {
+        lcl.set_form_caption(shared.current, "Current");
+    });
+    selection = FormSelection(second);
+    lcl.process_messages_bounded(1);
+    let result = lcl.form_caption(first) + ":" + lcl.form_caption(second);
+    lcl.free_form(first);
+    lcl.free_form(second);
+    result
+}
+
+@test(expected_type = "string", expected_value = "Legacy owned form")
+fn test_box_result_and_arguments_remain_compatible() -> string {
+    lcl.initialize();
+    let form = legacy_owned_form();
+    lcl.set_form_caption(form, "Legacy owned form");
+    let result = lcl.form_caption(form);
+    lcl.free_form(form);
+    result
+}
+
 fn make_retained_form() -> &lcl.Form {
     lcl.new_form()
 }

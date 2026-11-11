@@ -76,13 +76,25 @@ Unknown kinds return `P7_STATUS_TYPE_MISMATCH`.
 
 ## Ownership and inheritance
 
-`new_form` returns `box<Form>`, owning its native form. Form-operation parameters
-now accept `&Form` and implicitly reduce an owning box to a retained reference
-without changing its identity or finalization. Existing callers passing boxes
-continue to work; callers can also keep an explicit `&Form` after its creator
-returns. This is a script signature widening, not a C ABI layout change.
+`new_form` now returns `&Form`; form-operation parameters also accept `&Form`.
+The native constructor's `MakeForeignOwned` still creates the owning foreign
+carrier, which the typed result boundary normalizes to a managed reference
+without changing identity or finalization. Existing callers passing boxes
+continue to work, and native functions explicitly declaring legacy `box<Form>`
+results remain supported. Scripts explicitly assigning `new_form()` to a
+`box<Form>` variable must instead use `&Form` or type inference; the reduction is
+not reversible. This script result change does not alter any C ABI layout.
 No native callback returns a scoped `ref<P>` or manufactures a retained
 reference from a borrowed pointer.
+
+`RetainCallback` roots the exact closure and its captured managed locations.
+Fixed projections and protocol dispatch metadata remain attached to their live
+owner; the extension stores only runtime-scoped callback tokens, never copied
+referents or recovered box handles. `GetForeign` validates the current foreign
+owner on each call. Call tokens cannot be transferred between runtimes, and a
+non-owning foreign pointer cannot acquire ownership through a reference.
+Callback replacement/clear, component destruction, and extension shutdown
+release their native roots. Ordinary scoped `ref`/`refmut` remain nonescaping.
 
 Other public LCL values are persistent
 non-owning handles owned by their declared LCL owner. Explicit release or owner
