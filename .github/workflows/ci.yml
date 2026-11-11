@@ -9,19 +9,17 @@ permissions:
 
 env:
   LAZARUS_VERSION: "4.4"
-  PROTOSEPT_REF: master
 
 jobs:
   source:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Checkout Protosept
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          repository: dontpanic92/protosept
-          ref: ${{ env.PROTOSEPT_REF }}
-          path: protosept
+          submodules: recursive
+      - name: Verify Protosept pin
+        shell: bash
+        run: test "$(git -C protosept rev-parse HEAD)" = "$(tr -d '[:space:]' < protosept.rev)"
       - name: Check generated files
         run: ./scripts/check-generated.sh
       - name: Check release packaging
@@ -45,12 +43,8 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Checkout Protosept
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          repository: dontpanic92/protosept
-          ref: ${{ env.PROTOSEPT_REF }}
-          path: protosept
+          submodules: recursive
       - name: Install GTK3 build and runtime libraries
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --yes gdb libgtk-3-dev xvfb
@@ -81,6 +75,13 @@ jobs:
       - name: Test root package under Xvfb
         if: runner.os == 'Linux'
         run: xvfb-run -a cargo run --quiet --manifest-path protosept/Cargo.toml -p p7-cli -- test .
+      - name: Check, build, and test examples
+        if: runner.os != 'Linux'
+        shell: bash
+        run: ./scripts/check-examples.sh
+      - name: Check, build, and test examples under Xvfb
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ./scripts/check-examples.sh
       - name: Package native extension
         run: python scripts/package-release.py package --target ${{ matrix.target }}
       - name: Upload release archive
@@ -120,12 +121,8 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Checkout Protosept
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          repository: dontpanic92/protosept
-          ref: ${{ env.PROTOSEPT_REF }}
-          path: protosept
+          submodules: recursive
       - name: Install GTK3 runtime
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --yes libgtk-3-0t64 libharfbuzz-gobject0 xvfb

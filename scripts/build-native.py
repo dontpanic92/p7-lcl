@@ -91,8 +91,11 @@ def main() -> int:
     compiler = os.environ.get("FPC") or shutil.which("fpc")
     if compiler:
         command.append(f"--compiler={compiler}")
-    if target_os == "darwin" and os.environ.get("P7_LCL_DARWIN_LD_CLASSIC", "1") != "0":
-        command.append("--opt=-k-ld_classic")
+    if target_os == "darwin":
+        if os.environ.get("P7_LCL_DARWIN_LD_CLASSIC", "1") != "0":
+            command.append("--opt=-k-ld_classic")
+        else:
+            command.append("--opt=-k-no_objc_relative_method_lists")
     if os.environ.get("P7_LCL_DEBUG_INFO") == "1":
         command.extend(["--opt=-gw3", "--opt=-gl"])
 

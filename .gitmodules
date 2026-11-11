@@ -1,0 +1,4 @@
+[submodule "protosept"]
+	path = protosept
+	url = https://github.com/dontpanic92/protosept
+	branch = dontpanic92-managed-references

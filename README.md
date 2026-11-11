@@ -75,7 +75,21 @@ with `lcl.register_main_form(form)` before `lcl.run()`. Registration can be
 changed until running starts, but an application loop runs only once and cannot
 be restarted after it returns or is terminated.
 
-`box<lcl.Form>` owns its form. Controls are returned as persistent non-owning
+`lcl.new_form()` still returns an owning `box<lcl.Form>`. Form operations accept
+`&lcl.Form`, so callers can retain the same owned foreign cell without allocating
+a new box:
+
+```p7
+let form: &lcl.Form = lcl.new_form();
+lcl.queue(() => {
+    lcl.set_form_caption(form, "Updated through a retained reference");
+});
+```
+
+The box-to-reference conversion shares identity and keeps native ownership and
+finalization intact. Explicit `lcl.free_form(form)` still invalidates all aliases;
+a retained reference does not undo explicit native destruction. Controls are
+returned as persistent non-owning
 `handle<lcl.*>` values. Their LCL owner is the form, and owner destruction
 invalidates every child handle before it can be used again.
 
@@ -122,8 +136,21 @@ coordinates and bounds cross the ABI as fixed-width scalar arguments.
 Replace or clear it with `lcl.application_clear_on_exception()` when it is no
 longer needed.
 
-The `protosept` directory is intentionally untracked and points to the local
-Protosept checkout used to build the CLI.
+`protosept` is a remote-backed Git submodule tracking the
+`dontpanic92-managed-references` branch. Its gitlink and `protosept.rev` pin
+`63512e1a11300e57cc622a06e7b8607179638e3c`; normal builds and CI use that exact
+commit, not the current branch tip. Initialize it before building:
+
+```bash
+git submodule update --init --recursive
+```
+
+The existing [showcase](examples/showcase/) now uses managed references for its
+real Add-button/timer session state. Its setup function returns `&State` pointing
+at a mutable local slot; rooted callbacks share that slot after setup returns.
+**Clear output** replaces the state in place, resetting the counters without
+disconnecting the existing callbacks. See [the gallery guide](examples/README.md)
+for the code path and smoke check.
 
 ## Pre-built package
 
@@ -198,8 +225,14 @@ The build locates `lazbuild` and FPC from `PATH` or the `LAZBUILD`, `FPC`, and
 `LAZARUS_DIR` environment variables. It selects Cocoa, GTK3, or Win32 from the
 target triple. macOS builds pass `-ld_classic` by default because affected
 FPC/Lazarus toolchains emit Objective-C metadata rejected by Apple's newer
-linker; set `P7_LCL_DARWIN_LD_CLASSIC=0` for a toolchain that no longer needs
-it.
+linker. On newer Xcode versions where `-ld_classic` is ignored, use:
+
+```bash
+P7_LCL_DARWIN_LD_CLASSIC=0 ./scripts/build-native.sh
+```
+
+That selects the modern linker with `-no_objc_relative_method_lists`, avoiding
+its `Malformed method list` assertion on affected FPC Objective-C metadata.
 
 Create and validate a target release archive with:
 
@@ -211,11 +244,12 @@ python3 scripts/check-release.py
 
 Version tags trigger GitHub Actions builds for all four targets and publish the
 archives, SHA-256 sidecars, package index, and index checksum in one GitHub
-Release. Before tagging, release Protosept, write that immutable 40-character
-commit SHA to `protosept.rev`, and commit the pin; release workflows reject the
-`UNRELEASED` placeholder. Set it to `SKIP` to bypass the pin and build from
-Protosept `master`; this is convenient during development but makes a release
-non-reproducible.
+Release. Before tagging, select the intended immutable Protosept commit in the
+submodule, write the same 40-character SHA to `protosept.rev`, and commit both
+pins. CI checks they agree; release workflows reject placeholders and `SKIP`.
+Changing the submodule's tracked branch does not update the pinned commit.
+Rebuild the library and examples after updating Protosept so their bytecode
+uses the new reference lowering; do not reuse old generated `.p7bc` artifacts.
 
 Run the root library checks from this directory:
 

@@ -3,7 +3,7 @@ version = 2
 [[package]]
 name = "lcl"
 version = "0.1.0"
-checksum = "02ce9566b9f68243ca49ee54ce003e93e9284e0ced938feab096127f18359ad1"
+checksum = "ce41cedf29b2bf4916b1542342cc9b69ddf899bc4f73d644fef417f6ee89d9b2"
 
 [package.source]
 kind = "path"
@@ -14,7 +14,7 @@ path = "../.."
 [[package]]
 name = "lcl_showcase_example"
 version = "0.1.0"
-checksum = "4dd6cab6b5e36730f373f6557edc694726e786e4b0eeef88e5c50b8b67998aa5"
+checksum = "a2df2be4c637613075c913e0e62282a435e2ff69330290e57685985a70647274"
 
 [package.source]
 kind = "path"

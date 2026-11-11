@@ -1,4 +1,5 @@
 import lcl;
+import _.session;
 
 fn open_showcase_image(
     dialog: handle<lcl.OpenDialog>,
@@ -31,8 +32,12 @@ fn show_showcase_combo_selection(
 }
 
 fn main() -> int {
+    run_showcase(() => {})
+}
+
+pub fn run_showcase(on_ready: fn()) -> int {
     lcl.initialize();
-    let form = lcl.new_form();
+    let form: &lcl.Form = lcl.new_form();
     lcl.register_main_form(form);
     lcl.set_component_name(lcl.main_form(), "ShowcaseForm");
     lcl.set_form_caption(form, "Protosept LCL showcase");
@@ -162,17 +167,7 @@ fn main() -> int {
     let timer = lcl.new_timer(form);
     lcl.set_timer_interval(timer, 1000);
     lcl.set_timer_enabled(timer, true);
-    lcl.timer_on_timer(timer, (sender: handle<lcl.Component>) => {
-        let actual = sender as handle<lcl.Timer>;
-        lcl.set_component_name(actual, "ShowcaseTimer");
-        lcl.set_status_bar_simple_text(status, "Timer tick");
-    });
-
-    lcl.button_on_click(add_button, () => {
-        let index = lcl.list_box_add_item(list, lcl.edit_text(edit));
-        lcl.list_box_select_index(list, index);
-        lcl.set_status_bar_simple_text(status, "Item added");
-    });
+    let state = session.install(form, add_button, edit, list, timer, status);
     lcl.list_box_on_selection_change(list, (sender: handle<lcl.Control>) => {
         let actual = sender as handle<lcl.ListBox>;
         let index = lcl.list_box_item_index(actual);
@@ -232,7 +227,7 @@ fn main() -> int {
         lcl.set_component_name(actual, "ClearItem");
         lcl.set_memo_text(memo, "");
         lcl.image_clear(image);
-        lcl.set_status_bar_simple_text(status, "Output cleared");
+        session.reset(state, status);
     });
     lcl.form_on_show(form, () => {
         lcl.set_status_bar_simple_text(status, "Showcase visible");
@@ -244,14 +239,11 @@ fn main() -> int {
         let can_close = lcl.checkbox_checked(enable_memo);
         can_close
     });
-    lcl.form_on_close(form, () => {
-        lcl.set_timer_enabled(timer, false);
-    });
-
     lcl.show_form(form);
     if lcl.win_control_can_focus(edit) {
         lcl.set_win_control_focus(edit);
     }
+    on_ready();
     lcl.run();
 
     lcl.form_clear_on_close(form);

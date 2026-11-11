@@ -14,23 +14,20 @@ env:
 jobs:
   prepare:
     runs-on: ubuntu-24.04
-    outputs:
-      protosept_ref: ${{ steps.ref.outputs.protosept_ref }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          submodules: recursive
       - name: Read Protosept revision
         id: ref
         shell: bash
         run: |
           ref=$(tr -d '[:space:]' < protosept.rev)
-          if [[ "$ref" = "SKIP" ]]; then
-            echo "::warning::Protosept revision pinning is disabled; using master"
-            ref=master
-          elif ! [[ "$ref" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "protosept.rev must contain a 40-character commit SHA or SKIP" >&2
+          if ! [[ "$ref" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "protosept.rev must contain a 40-character commit SHA" >&2
             exit 1
           fi
-          echo "protosept_ref=$ref" >> "$GITHUB_OUTPUT"
+          test "$(git -C protosept rev-parse HEAD)" = "$ref"
 
   build:
     needs: prepare
@@ -49,12 +46,8 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Checkout Protosept
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          repository: dontpanic92/protosept
-          ref: ${{ needs.prepare.outputs.protosept_ref }}
-          path: protosept
+          submodules: recursive
       - name: Verify tag matches package version
         shell: bash
         run: |
@@ -119,12 +112,8 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Checkout Protosept
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          repository: dontpanic92/protosept
-          ref: ${{ needs.prepare.outputs.protosept_ref }}
-          path: protosept
+          submodules: recursive
       - name: Install GTK3 runtime
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --yes libgtk-3-0t64 libharfbuzz-gobject0 xvfb

@@ -270,7 +270,7 @@ fn native_process_messages();
 fn native_process_messages_bounded(max_turns: int) -> int;
 
 @intrinsic(name="p7lcl.application.register_main_form")
-fn native_register_main_form(form: box<Form>);
+fn native_register_main_form(form: &Form);
 
 @intrinsic(name="p7lcl.application.main_form")
 fn native_main_form() -> handle<Form>;
@@ -375,67 +375,67 @@ fn native_set_win_control_tab_order(control: handle<WinControl>, tab_order: ffi.
 fn native_create_form() -> box<Form>;
 
 @intrinsic(name="p7lcl.form.set_caption")
-fn native_set_form_caption(form: box<Form>, caption: string);
+fn native_set_form_caption(form: &Form, caption: string);
 
 @intrinsic(name="p7lcl.form.caption")
-fn native_form_caption(form: box<Form>) -> string;
+fn native_form_caption(form: &Form) -> string;
 
 @intrinsic(name="p7lcl.form.set_bounds")
-fn native_set_form_bounds(form: box<Form>, left: int, top: int, width: int, height: int);
+fn native_set_form_bounds(form: &Form, left: int, top: int, width: int, height: int);
 
 @intrinsic(name="p7lcl.form.show")
-fn native_show_form(form: box<Form>);
+fn native_show_form(form: &Form);
 
 @intrinsic(name="p7lcl.form.close")
-fn native_close_form(form: box<Form>);
+fn native_close_form(form: &Form);
 
 @intrinsic(name="p7lcl.form.on_close")
-fn native_form_on_close(form: box<Form>, callback: fn());
+fn native_form_on_close(form: &Form, callback: fn());
 
 @intrinsic(name="p7lcl.form.clear_on_close")
-fn native_form_clear_on_close(form: box<Form>);
+fn native_form_clear_on_close(form: &Form);
 
 @intrinsic(name="p7lcl.form.on_close_query")
-fn native_form_on_close_query(form: box<Form>, callback: fn() -> bool);
+fn native_form_on_close_query(form: &Form, callback: fn() -> bool);
 
 @intrinsic(name="p7lcl.form.clear_on_close_query")
-fn native_form_clear_on_close_query(form: box<Form>);
+fn native_form_clear_on_close_query(form: &Form);
 
 @intrinsic(name="p7lcl.form.on_show")
-fn native_form_on_show(form: box<Form>, callback: fn());
+fn native_form_on_show(form: &Form, callback: fn());
 
 @intrinsic(name="p7lcl.form.clear_on_show")
-fn native_form_clear_on_show(form: box<Form>);
+fn native_form_clear_on_show(form: &Form);
 
 @intrinsic(name="p7lcl.form.on_hide")
-fn native_form_on_hide(form: box<Form>, callback: fn());
+fn native_form_on_hide(form: &Form, callback: fn());
 
 @intrinsic(name="p7lcl.form.clear_on_hide")
-fn native_form_clear_on_hide(form: box<Form>);
+fn native_form_clear_on_hide(form: &Form);
 
 @intrinsic(name="p7lcl.form.on_activate")
-fn native_form_on_activate(form: box<Form>, callback: fn());
+fn native_form_on_activate(form: &Form, callback: fn());
 
 @intrinsic(name="p7lcl.form.clear_on_activate")
-fn native_form_clear_on_activate(form: box<Form>);
+fn native_form_clear_on_activate(form: &Form);
 
 @intrinsic(name="p7lcl.form.on_deactivate")
-fn native_form_on_deactivate(form: box<Form>, callback: fn());
+fn native_form_on_deactivate(form: &Form, callback: fn());
 
 @intrinsic(name="p7lcl.form.clear_on_deactivate")
-fn native_form_clear_on_deactivate(form: box<Form>);
+fn native_form_clear_on_deactivate(form: &Form);
 
 @intrinsic(name="p7lcl.form.on_resize")
-fn native_form_on_resize(form: box<Form>, callback: fn());
+fn native_form_on_resize(form: &Form, callback: fn());
 
 @intrinsic(name="p7lcl.form.clear_on_resize")
-fn native_form_clear_on_resize(form: box<Form>);
+fn native_form_clear_on_resize(form: &Form);
 
 @intrinsic(name="p7lcl.form.free")
-fn native_free_form(form: box<Form>);
+fn native_free_form(form: &Form);
 
 @intrinsic(name="p7lcl.button.create")
-fn native_create_button(form: box<Form>) -> handle<Button>;
+fn native_create_button(form: &Form) -> handle<Button>;
 
 @intrinsic(name="p7lcl.button.set_caption")
 fn native_set_button_caption(button: handle<Button>, caption: string);
@@ -489,7 +489,7 @@ fn native_button_send_mouse_down(button: handle<Button>, mouse_button: ffi.i32, 
 fn native_free_button(button: handle<Button>);
 
 @intrinsic(name="p7lcl.checkbox.create")
-fn native_create_checkbox(form: box<Form>) -> handle<CheckBox>;
+fn native_create_checkbox(form: &Form) -> handle<CheckBox>;
 
 @intrinsic(name="p7lcl.checkbox.set_caption")
 fn native_set_checkbox_caption(checkbox: handle<CheckBox>, caption: string);
@@ -516,7 +516,7 @@ fn native_click_checkbox(checkbox: handle<CheckBox>);
 fn native_free_checkbox(checkbox: handle<CheckBox>);
 
 @intrinsic(name="p7lcl.radio_button.create")
-fn native_create_radio_button(form: box<Form>) -> handle<RadioButton>;
+fn native_create_radio_button(form: &Form) -> handle<RadioButton>;
 
 @intrinsic(name="p7lcl.radio_button.set_caption")
 fn native_set_radio_button_caption(radio_button: handle<RadioButton>, caption: string);
@@ -543,7 +543,7 @@ fn native_click_radio_button(radio_button: handle<RadioButton>);
 fn native_free_radio_button(radio_button: handle<RadioButton>);
 
 @intrinsic(name="p7lcl.label.create")
-fn native_create_label(form: box<Form>) -> handle<Label>;
+fn native_create_label(form: &Form) -> handle<Label>;
 
 @intrinsic(name="p7lcl.label.set_caption")
 fn native_set_label_caption(label: handle<Label>, caption: string);
@@ -561,7 +561,7 @@ fn native_set_label_visible(label: handle<Label>, visible: bool);
 fn native_free_label(label: handle<Label>);
 
 @intrinsic(name="p7lcl.edit.create")
-fn native_create_edit(form: box<Form>) -> handle<Edit>;
+fn native_create_edit(form: &Form) -> handle<Edit>;
 
 @intrinsic(name="p7lcl.edit.set_text")
 fn native_set_edit_text(edit: handle<Edit>, text: string);
@@ -636,7 +636,7 @@ fn native_edit_send_utf8_key_press(edit: handle<Edit>, key: string) -> string;
 fn native_free_edit(edit: handle<Edit>);
 
 @intrinsic(name="p7lcl.memo.create")
-fn native_create_memo(form: box<Form>) -> handle<Memo>;
+fn native_create_memo(form: &Form) -> handle<Memo>;
 
 @intrinsic(name="p7lcl.memo.set_text")
 fn native_set_memo_text(memo: handle<Memo>, text: string);
@@ -657,7 +657,7 @@ fn native_memo_trigger_change(memo: handle<Memo>);
 fn native_free_memo(memo: handle<Memo>);
 
 @intrinsic(name="p7lcl.list_box.create")
-fn native_create_list_box(form: box<Form>) -> handle<ListBox>;
+fn native_create_list_box(form: &Form) -> handle<ListBox>;
 
 @intrinsic(name="p7lcl.list_box.item_count")
 fn native_list_box_item_count(list_box: handle<ListBox>) -> int;
@@ -693,7 +693,7 @@ fn native_list_box_clear_on_selection_change(list_box: handle<ListBox>);
 fn native_free_list_box(list_box: handle<ListBox>);
 
 @intrinsic(name="p7lcl.combo_box.create")
-fn native_create_combo_box(form: box<Form>) -> handle<ComboBox>;
+fn native_create_combo_box(form: &Form) -> handle<ComboBox>;
 
 @intrinsic(name="p7lcl.combo_box.item_count")
 fn native_combo_box_item_count(combo_box: handle<ComboBox>) -> int;
@@ -729,7 +729,7 @@ fn native_combo_box_clear_on_change(combo_box: handle<ComboBox>);
 fn native_free_combo_box(combo_box: handle<ComboBox>);
 
 @intrinsic(name="p7lcl.panel.create")
-fn native_create_panel(form: box<Form>) -> handle<Panel>;
+fn native_create_panel(form: &Form) -> handle<Panel>;
 
 @intrinsic(name="p7lcl.panel.set_caption")
 fn native_set_panel_caption(panel: handle<Panel>, caption: string);
@@ -747,7 +747,7 @@ fn native_set_panel_visible(panel: handle<Panel>, visible: bool);
 fn native_free_panel(panel: handle<Panel>);
 
 @intrinsic(name="p7lcl.image.create")
-fn native_create_image(form: box<Form>) -> handle<Image>;
+fn native_create_image(form: &Form) -> handle<Image>;
 
 @intrinsic(name="p7lcl.image.set_center")
 fn native_set_image_center(image: handle<Image>, center: bool);
@@ -789,7 +789,7 @@ fn native_image_picture_height(image: handle<Image>) -> int;
 fn native_free_image(image: handle<Image>);
 
 @intrinsic(name="p7lcl.timer.create")
-fn native_create_timer(form: box<Form>) -> handle<Timer>;
+fn native_create_timer(form: &Form) -> handle<Timer>;
 
 @intrinsic(name="p7lcl.timer.set_enabled")
 fn native_set_timer_enabled(timer: handle<Timer>, enabled: bool);
@@ -816,10 +816,10 @@ fn native_timer_trigger(timer: handle<Timer>);
 fn native_free_timer(timer: handle<Timer>);
 
 @intrinsic(name="p7lcl.main_menu.create")
-fn native_create_main_menu(form: box<Form>) -> handle<MainMenu>;
+fn native_create_main_menu(form: &Form) -> handle<MainMenu>;
 
 @intrinsic(name="p7lcl.form.set_main_menu")
-fn native_set_form_main_menu(form: box<Form>, menu: handle<MainMenu>);
+fn native_set_form_main_menu(form: &Form, menu: handle<MainMenu>);
 
 @intrinsic(name="p7lcl.main_menu.free")
 fn native_free_main_menu(menu: handle<MainMenu>);
@@ -867,7 +867,7 @@ fn native_menu_item_click(item: handle<MenuItem>);
 fn native_free_menu_item(item: handle<MenuItem>);
 
 @intrinsic(name="p7lcl.tool_bar.create")
-fn native_create_tool_bar(form: box<Form>) -> handle<ToolBar>;
+fn native_create_tool_bar(form: &Form) -> handle<ToolBar>;
 
 @intrinsic(name="p7lcl.tool_bar.set_show_captions")
 fn native_set_tool_bar_show_captions(tool_bar: handle<ToolBar>, show: bool);
@@ -903,7 +903,7 @@ fn native_tool_button_click(button: handle<ToolButton>);
 fn native_free_tool_button(button: handle<ToolButton>);
 
 @intrinsic(name="p7lcl.status_bar.create")
-fn native_create_status_bar(form: box<Form>) -> handle<StatusBar>;
+fn native_create_status_bar(form: &Form) -> handle<StatusBar>;
 
 @intrinsic(name="p7lcl.status_bar.set_simple_text")
 fn native_set_status_bar_simple_text(status_bar: handle<StatusBar>, text: string);
@@ -921,7 +921,7 @@ fn native_status_bar_simple_panel(status_bar: handle<StatusBar>) -> bool;
 fn native_free_status_bar(status_bar: handle<StatusBar>);
 
 @intrinsic(name="p7lcl.open_dialog.create")
-fn native_create_open_dialog(form: box<Form>) -> handle<OpenDialog>;
+fn native_create_open_dialog(form: &Form) -> handle<OpenDialog>;
 
 @intrinsic(name="p7lcl.open_dialog.set_file_name")
 fn native_set_open_dialog_file_name(dialog: handle<OpenDialog>, file_name: string);
@@ -942,7 +942,7 @@ fn native_open_dialog_execute(dialog: handle<OpenDialog>) -> bool;
 fn native_free_open_dialog(dialog: handle<OpenDialog>);
 
 @intrinsic(name="p7lcl.save_dialog.create")
-fn native_create_save_dialog(form: box<Form>) -> handle<SaveDialog>;
+fn native_create_save_dialog(form: &Form) -> handle<SaveDialog>;
 
 @intrinsic(name="p7lcl.save_dialog.set_file_name")
 fn native_set_save_dialog_file_name(dialog: handle<SaveDialog>, file_name: string);
@@ -957,7 +957,7 @@ fn native_save_dialog_execute(dialog: handle<SaveDialog>) -> bool;
 fn native_free_save_dialog(dialog: handle<SaveDialog>);
 
 @intrinsic(name="p7lcl.group_box.create")
-fn native_create_group_box(form: box<Form>) -> handle<GroupBox>;
+fn native_create_group_box(form: &Form) -> handle<GroupBox>;
 
 @intrinsic(name="p7lcl.group_box.set_caption")
 fn native_set_group_box_caption(group_box: handle<GroupBox>, caption: string);
@@ -984,7 +984,7 @@ pub fn process_messages_bounded(max_turns: int) -> int {
     native_process_messages_bounded(max_turns)
 }
 
-pub fn register_main_form(form: box<Form>) {
+pub fn register_main_form(form: &Form) {
     native_register_main_form(form)
 }
 
@@ -1124,87 +1124,87 @@ pub fn new_form() -> box<Form> {
     native_create_form()
 }
 
-pub fn set_form_caption(form: box<Form>, caption: string) {
+pub fn set_form_caption(form: &Form, caption: string) {
     native_set_form_caption(form, caption)
 }
 
-pub fn form_caption(form: box<Form>) -> string {
+pub fn form_caption(form: &Form) -> string {
     native_form_caption(form)
 }
 
-pub fn set_form_bounds(form: box<Form>, left: int, top: int, width: int, height: int) {
+pub fn set_form_bounds(form: &Form, left: int, top: int, width: int, height: int) {
     native_set_form_bounds(form, left, top, width, height)
 }
 
-pub fn show_form(form: box<Form>) {
+pub fn show_form(form: &Form) {
     native_show_form(form)
 }
 
-pub fn close_form(form: box<Form>) {
+pub fn close_form(form: &Form) {
     native_close_form(form)
 }
 
-pub fn form_on_close(form: box<Form>, callback: fn()) {
+pub fn form_on_close(form: &Form, callback: fn()) {
     native_form_on_close(form, callback)
 }
 
-pub fn form_clear_on_close(form: box<Form>) {
+pub fn form_clear_on_close(form: &Form) {
     native_form_clear_on_close(form)
 }
 
-pub fn form_on_close_query(form: box<Form>, callback: fn() -> bool) {
+pub fn form_on_close_query(form: &Form, callback: fn() -> bool) {
     native_form_on_close_query(form, callback)
 }
 
-pub fn form_clear_on_close_query(form: box<Form>) {
+pub fn form_clear_on_close_query(form: &Form) {
     native_form_clear_on_close_query(form)
 }
 
-pub fn form_on_show(form: box<Form>, callback: fn()) {
+pub fn form_on_show(form: &Form, callback: fn()) {
     native_form_on_show(form, callback)
 }
 
-pub fn form_clear_on_show(form: box<Form>) {
+pub fn form_clear_on_show(form: &Form) {
     native_form_clear_on_show(form)
 }
 
-pub fn form_on_hide(form: box<Form>, callback: fn()) {
+pub fn form_on_hide(form: &Form, callback: fn()) {
     native_form_on_hide(form, callback)
 }
 
-pub fn form_clear_on_hide(form: box<Form>) {
+pub fn form_clear_on_hide(form: &Form) {
     native_form_clear_on_hide(form)
 }
 
-pub fn form_on_activate(form: box<Form>, callback: fn()) {
+pub fn form_on_activate(form: &Form, callback: fn()) {
     native_form_on_activate(form, callback)
 }
 
-pub fn form_clear_on_activate(form: box<Form>) {
+pub fn form_clear_on_activate(form: &Form) {
     native_form_clear_on_activate(form)
 }
 
-pub fn form_on_deactivate(form: box<Form>, callback: fn()) {
+pub fn form_on_deactivate(form: &Form, callback: fn()) {
     native_form_on_deactivate(form, callback)
 }
 
-pub fn form_clear_on_deactivate(form: box<Form>) {
+pub fn form_clear_on_deactivate(form: &Form) {
     native_form_clear_on_deactivate(form)
 }
 
-pub fn form_on_resize(form: box<Form>, callback: fn()) {
+pub fn form_on_resize(form: &Form, callback: fn()) {
     native_form_on_resize(form, callback)
 }
 
-pub fn form_clear_on_resize(form: box<Form>) {
+pub fn form_clear_on_resize(form: &Form) {
     native_form_clear_on_resize(form)
 }
 
-pub fn free_form(form: box<Form>) {
+pub fn free_form(form: &Form) {
     native_free_form(form)
 }
 
-pub fn new_button(form: box<Form>) -> handle<Button> {
+pub fn new_button(form: &Form) -> handle<Button> {
     native_create_button(form)
 }
 
@@ -1276,7 +1276,7 @@ pub fn free_button(button: handle<Button>) {
     native_free_button(button)
 }
 
-pub fn new_checkbox(form: box<Form>) -> handle<CheckBox> {
+pub fn new_checkbox(form: &Form) -> handle<CheckBox> {
     native_create_checkbox(form)
 }
 
@@ -1312,7 +1312,7 @@ pub fn free_checkbox(checkbox: handle<CheckBox>) {
     native_free_checkbox(checkbox)
 }
 
-pub fn new_radio_button(form: box<Form>) -> handle<RadioButton> {
+pub fn new_radio_button(form: &Form) -> handle<RadioButton> {
     native_create_radio_button(form)
 }
 
@@ -1348,7 +1348,7 @@ pub fn free_radio_button(radio_button: handle<RadioButton>) {
     native_free_radio_button(radio_button)
 }
 
-pub fn new_label(form: box<Form>) -> handle<Label> {
+pub fn new_label(form: &Form) -> handle<Label> {
     native_create_label(form)
 }
 
@@ -1372,7 +1372,7 @@ pub fn free_label(label: handle<Label>) {
     native_free_label(label)
 }
 
-pub fn new_edit(form: box<Form>) -> handle<Edit> {
+pub fn new_edit(form: &Form) -> handle<Edit> {
     native_create_edit(form)
 }
 
@@ -1472,7 +1472,7 @@ pub fn free_edit(edit: handle<Edit>) {
     native_free_edit(edit)
 }
 
-pub fn new_memo(form: box<Form>) -> handle<Memo> {
+pub fn new_memo(form: &Form) -> handle<Memo> {
     native_create_memo(form)
 }
 
@@ -1500,7 +1500,7 @@ pub fn free_memo(memo: handle<Memo>) {
     native_free_memo(memo)
 }
 
-pub fn new_list_box(form: box<Form>) -> handle<ListBox> {
+pub fn new_list_box(form: &Form) -> handle<ListBox> {
     native_create_list_box(form)
 }
 
@@ -1548,7 +1548,7 @@ pub fn free_list_box(list_box: handle<ListBox>) {
     native_free_list_box(list_box)
 }
 
-pub fn new_combo_box(form: box<Form>) -> handle<ComboBox> {
+pub fn new_combo_box(form: &Form) -> handle<ComboBox> {
     native_create_combo_box(form)
 }
 
@@ -1596,7 +1596,7 @@ pub fn free_combo_box(combo_box: handle<ComboBox>) {
     native_free_combo_box(combo_box)
 }
 
-pub fn new_panel(form: box<Form>) -> handle<Panel> {
+pub fn new_panel(form: &Form) -> handle<Panel> {
     native_create_panel(form)
 }
 
@@ -1620,7 +1620,7 @@ pub fn free_panel(panel: handle<Panel>) {
     native_free_panel(panel)
 }
 
-pub fn new_image(form: box<Form>) -> handle<Image> {
+pub fn new_image(form: &Form) -> handle<Image> {
     native_create_image(form)
 }
 
@@ -1676,7 +1676,7 @@ pub fn free_image(image: handle<Image>) {
     native_free_image(image)
 }
 
-pub fn new_timer(form: box<Form>) -> handle<Timer> {
+pub fn new_timer(form: &Form) -> handle<Timer> {
     native_create_timer(form)
 }
 
@@ -1712,11 +1712,11 @@ pub fn free_timer(timer: handle<Timer>) {
     native_free_timer(timer)
 }
 
-pub fn new_main_menu(form: box<Form>) -> handle<MainMenu> {
+pub fn new_main_menu(form: &Form) -> handle<MainMenu> {
     native_create_main_menu(form)
 }
 
-pub fn set_form_main_menu(form: box<Form>, menu: handle<MainMenu>) {
+pub fn set_form_main_menu(form: &Form, menu: handle<MainMenu>) {
     native_set_form_main_menu(form, menu)
 }
 
@@ -1780,7 +1780,7 @@ pub fn free_menu_item(item: handle<MenuItem>) {
     native_free_menu_item(item)
 }
 
-pub fn new_tool_bar(form: box<Form>) -> handle<ToolBar> {
+pub fn new_tool_bar(form: &Form) -> handle<ToolBar> {
     native_create_tool_bar(form)
 }
 
@@ -1828,7 +1828,7 @@ pub fn free_tool_button(button: handle<ToolButton>) {
     native_free_tool_button(button)
 }
 
-pub fn new_status_bar(form: box<Form>) -> handle<StatusBar> {
+pub fn new_status_bar(form: &Form) -> handle<StatusBar> {
     native_create_status_bar(form)
 }
 
@@ -1852,7 +1852,7 @@ pub fn free_status_bar(status_bar: handle<StatusBar>) {
     native_free_status_bar(status_bar)
 }
 
-pub fn new_open_dialog(form: box<Form>) -> handle<OpenDialog> {
+pub fn new_open_dialog(form: &Form) -> handle<OpenDialog> {
     native_create_open_dialog(form)
 }
 
@@ -1880,7 +1880,7 @@ pub fn free_open_dialog(dialog: handle<OpenDialog>) {
     native_free_open_dialog(dialog)
 }
 
-pub fn new_save_dialog(form: box<Form>) -> handle<SaveDialog> {
+pub fn new_save_dialog(form: &Form) -> handle<SaveDialog> {
     native_create_save_dialog(form)
 }
 
@@ -1900,7 +1900,7 @@ pub fn free_save_dialog(dialog: handle<SaveDialog>) {
     native_free_save_dialog(dialog)
 }
 
-pub fn new_group_box(form: box<Form>) -> handle<GroupBox> {
+pub fn new_group_box(form: &Form) -> handle<GroupBox> {
     native_create_group_box(form)
 }
 

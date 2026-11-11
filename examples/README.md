@@ -12,7 +12,7 @@ native extension with `./scripts/build-native.sh`.
 | [`collections`](collections/) | List-box and combo-box indexed item operations and selection events. |
 | [`application`](application/) | Main-form registration, lifecycle events, close query, exceptions, invoke/queue, bounded pumping, run, and termination. |
 | [`desktop-components`](desktop-components/) | Menus, toolbar, status bar, dialogs, images, group boxes, and timers. |
-| [`showcase`](showcase/) | A cohesive desktop application containing every concrete component exposed by the binding. |
+| [`showcase`](showcase/) | A cohesive desktop application containing every concrete component exposed by the binding, with retained shared callback state. |
 
 ## Automated validation
 
@@ -31,6 +31,38 @@ cargo run --manifest-path protosept/Cargo.toml -p p7-cli -- test examples/layout
 ```
 
 Replace `layout` with any directory listed above.
+
+## Managed references in the showcase
+
+[`showcase/src/session.p7`](showcase/src/session.p7) installs the existing Add
+button and timer callbacks around one mutable `State` local. It takes `&state`
+and returns that reference to the caller. The native-rooted closures retain the
+same slot after `session.install` returns: Add increments the added-item count,
+the timer increments the tick count, and both display the current counts in the
+status bar. **File > Clear output** calls `session.reset`, replacing `*state`
+with `State(0, 0)`. Already-installed callbacks see the replacement rather than
+a stale snapshot.
+
+The main form is explicitly typed `&lcl.Form`, converted from the owning box
+returned by `lcl.new_form()`. The native API still allocates an owned foreign
+cell; the conversion preserves its identity and finalizer. Child controls and
+event senders remain `handle<lcl.*>` because their native LCL owner, not the
+script reference, controls their lifetime. Do not convert an unowned child
+handle into `&lcl.*`.
+
+Run the showcase checks on a native desktop (or GTK3 under Xvfb):
+
+```bash
+cargo run --manifest-path protosept/Cargo.toml -p p7-cli -- test examples/showcase
+```
+
+The tests exercise the actual shared session callbacks after setup returns,
+reset through an alias, a field reference across whole-state replacement, and
+queued native dispatch. A separate smoke test invokes the same application
+runner as `main`, shows its full window, enters the LCL event loop, and terminates
+through a queued callback without waiting for manual interaction. The runner's
+`on_ready` hook queues termination after the initial show/focus work, because
+showing an LCL form can itself pump queued callbacks before `run` starts.
 
 ## Manual runs
 
@@ -53,8 +85,10 @@ Use this checklist on the supported Cocoa, GTK3, or Win32 baseline:
    verify close-query cancellation, then re-enable it and close.
 6. `desktop-components`: use both toolbar buttons, open the native file
    dialogs, confirm timer status updates, and close the form.
-7. `showcase`: add and select list items, switch options, load the checked-in
-   XPM fixture, try both native dialogs, resize the layout, and close cleanly.
+7. `showcase`: add and select list items, observe shared Add/timer counters in
+   the status bar, choose **File > Clear output**, and verify the next Add/timer
+   events continue from zero. Switch options, load the checked-in XPM fixture,
+   try both native dialogs, resize the layout, and close cleanly.
 
 The fixture-loading actions use paths relative to the repository root, so run
 the examples from that directory.

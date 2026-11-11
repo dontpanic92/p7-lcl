@@ -1,5 +1,57 @@
 import test.test;
 import lcl;
+import _.session;
+import _.main;
+
+@test(expected_type = "int", expected_value = "0")
+fn test_showcase_main_event_loop_smoke() -> int {
+    main.run_showcase(() => {
+        lcl.queue(() => {
+            lcl.terminate();
+        });
+    })
+}
+
+@test(expected_type = "string", expected_value = "Added: 1 | Timer ticks: 1:replaced")
+fn test_managed_session_survives_setup_reset_and_queued_dispatch() -> string {
+    lcl.initialize();
+    let form: &lcl.Form = lcl.new_form();
+    let button = lcl.new_button(form);
+    let edit = lcl.new_edit(form);
+    let list = lcl.new_list_box(form);
+    let timer = lcl.new_timer(form);
+    let status = lcl.new_status_bar(form);
+    lcl.set_status_bar_simple_panel(status, true);
+    let state = session.install(form, button, edit, list, timer, status);
+    let added = &state.added;
+
+    lcl.set_edit_text(edit, "before reset");
+    lcl.click_button(button);
+    lcl.timer_trigger(timer);
+    session.reset(state, status);
+    if *added != 0 {
+        return "field reference missed reset";
+    }
+
+    lcl.queue(() => {
+        lcl.set_edit_text(edit, "replaced");
+        lcl.click_button(button);
+        lcl.timer_trigger(timer);
+    });
+    lcl.process_messages_bounded(1);
+    let result = session.summary(state) + ":" + lcl.list_box_item(list, 1);
+    if lcl.status_bar_simple_text(status) != session.summary(state) {
+        return "callbacks diverged from shared state";
+    }
+    if *added != 1 {
+        return "field reference missed callback";
+    }
+    lcl.timer_clear_on_timer(timer);
+    lcl.button_clear_on_click(button);
+    lcl.form_clear_on_close(form);
+    lcl.free_form(form);
+    result
+}
 
 @test(expected_type = "string", expected_value = "item:timer:Run")
 fn test_showcase_component_integration() -> string {

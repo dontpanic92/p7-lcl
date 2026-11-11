@@ -51,7 +51,7 @@ def main() -> int:
             '@test(expected_type = "string", expected_value = "prebuilt")\n'
             "fn test_prebuilt_extension() -> string {\n"
             "  lcl.initialize();\n"
-            "  let form = lcl.new_form();\n"
+            "  let form: &lcl.Form = lcl.new_form();\n"
             '  lcl.set_form_caption(form, "prebuilt");\n'
             "  let result = lcl.form_caption(form);\n"
             "  lcl.free_form(form);\n"

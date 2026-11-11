@@ -1,0 +1,42 @@
+import lcl;
+
+pub struct State(pub added: int, pub ticks: int);
+
+pub fn summary(state: &State) -> string {
+    let added = state.added;
+    let ticks = state.ticks;
+    f"Added: {added} | Timer ticks: {ticks}"
+}
+
+pub fn install(
+    form: &lcl.Form,
+    add_button: handle<lcl.Button>,
+    edit: handle<lcl.Edit>,
+    list: handle<lcl.ListBox>,
+    timer: handle<lcl.Timer>,
+    status: handle<lcl.StatusBar>
+) -> &State {
+    let mut state = State(0, 0);
+    let shared = &state;
+    lcl.button_on_click(add_button, () => {
+        let index = lcl.list_box_add_item(list, lcl.edit_text(edit));
+        lcl.list_box_select_index(list, index);
+        shared.added += 1;
+        lcl.set_status_bar_simple_text(status, summary(shared));
+    });
+    lcl.timer_on_timer(timer, (sender: handle<lcl.Component>) => {
+        let actual = sender as handle<lcl.Timer>;
+        lcl.set_component_name(actual, "ShowcaseTimer");
+        shared.ticks += 1;
+        lcl.set_status_bar_simple_text(status, summary(shared));
+    });
+    lcl.form_on_close(form, () => {
+        lcl.set_timer_enabled(timer, false);
+    });
+    shared
+}
+
+pub fn reset(state: &State, status: handle<lcl.StatusBar>) {
+    *state = State(0, 0);
+    lcl.set_status_bar_simple_text(status, summary(state));
+}

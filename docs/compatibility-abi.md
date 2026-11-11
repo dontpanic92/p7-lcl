@@ -76,11 +76,20 @@ Unknown kinds return `P7_STATUS_TYPE_MISMATCH`.
 
 ## Ownership and inheritance
 
-`box<Form>` owns its native form. Other public LCL values are persistent
+`new_form` returns `box<Form>`, owning its native form. Form-operation parameters
+now accept `&Form` and implicitly reduce an owning box to a retained reference
+without changing its identity or finalization. Existing callers passing boxes
+continue to work; callers can also keep an explicit `&Form` after its creator
+returns. This is a script signature widening, not a C ABI layout change.
+No native callback returns a scoped `ref<P>` or manufactures a retained
+reference from a borrowed pointer.
+
+Other public LCL values are persistent
 non-owning handles owned by their declared LCL owner. Explicit release or owner
 destruction invalidates all matching handles before native memory can be
 reused. Re-entrant event destruction is queued until the active callback
-returns.
+returns. Explicit `free_form` also invalidates retained form aliases; retaining
+the owned cell does not keep an explicitly destroyed LCL object usable.
 
 The foreign hierarchy and ownership rules are generated exclusively from
 `bindings.json`. Base upcasts are implicit; downcasts validate the dynamic type
