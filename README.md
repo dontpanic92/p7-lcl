@@ -149,7 +149,7 @@ longer needed.
 
 `protosept` is a remote-backed Git submodule tracking the
 `dontpanic92-managed-references` branch. Its gitlink and `protosept.rev` pin
-`d3c62654541c68b1e15e920abd88a1de0cb2963c`; normal builds and CI use that exact
+`f29fccd916d1c36e6206f0536671279a670c1b65`; normal builds and CI use that exact
 commit, not the current branch tip. Initialize it before building:
 
 ```bash
