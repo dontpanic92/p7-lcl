@@ -148,7 +148,7 @@ Replace or clear it with `lcl.application_clear_on_exception()` when it is no
 longer needed.
 
 `protosept` is a remote-backed Git submodule tracking the
-`dontpanic92-managed-references` branch. Its gitlink and `protosept.rev` pin
+`master` branch. Its gitlink and `protosept.rev` pin
 `f29fccd916d1c36e6206f0536671279a670c1b65`; normal builds and CI use that exact
 commit, not the current branch tip. Initialize it before building:
 
